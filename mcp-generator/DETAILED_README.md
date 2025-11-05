@@ -272,11 +272,11 @@ You can also use MCP Generator without an AI assistant:
 # Option 1: Web Interface (NEW!)
 cd /path/to/MCP/mcp-generator
 python web_app.py
-# Open http://localhost:5000 in your browser
+# Auto-finds available port (5000, 5001, 5002, etc.)
+# Open the URL shown in terminal
 
-# If port 5000 is in use:
-python web_app.py --port 8080        # Use port 8080
-python web_app.py --auto-port        # Auto-find available port
+# Specify custom port:
+python web_app.py --port 8080
 
 # Option 2: Command Line
 python -c "from server import MCPTemplate; print(MCPTemplate.basic_tool_server(...))"
@@ -343,17 +343,17 @@ AI: ✅ Configuration is valid!
    ```bash
    cd mcp-generator
    python web_app.py
+   # Auto-finds available port (default starts at 5000)
 
-   # If port 5000 is in use:
-   python web_app.py --port 8080     # Different port
-   python web_app.py --auto-port     # Auto-find port
+   # Custom port:
+   python web_app.py --port 8080
    ```
 
 2. **Open your browser:**
    ```
-   http://localhost:5000
+   Check the terminal output for the actual port
    ```
-   (Or the port shown in terminal)
+   Usually http://localhost:5000 (or 5001, 5002 if 5000 is busy)
 
 3. **Follow the wizard:**
 
@@ -787,15 +787,17 @@ where python  # Windows
 
 ### Issue: "Web interface won't start"
 
+**Note:** Auto-port is now enabled by default, so this should rarely happen!
+
 **Solution:**
 ```bash
-# Option 1: Use auto-port (recommended)
-python web_app.py --auto-port
+# Just run normally - it will auto-find a port
+python web_app.py
 
-# Option 2: Use different port
+# Or specify a different port
 python web_app.py --port 8080
 
-# Option 3: Check what's using port 5000
+# Check what's using ports (if needed)
 lsof -i :5000  # macOS/Linux
 netstat -ano | findstr :5000  # Windows
 ```

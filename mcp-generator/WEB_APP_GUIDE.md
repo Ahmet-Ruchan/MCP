@@ -17,28 +17,34 @@ pip install -r web_requirements.txt
 python web_app.py
 ```
 
-**If port 5000 is already in use:**
+**🎯 Smart Port Selection:**
+The app automatically finds an available port! If 5000 is busy, it will use 5001, 5002, etc.
+
 ```bash
-# Option 1: Use a different port
+# Example output when port 5000 is busy:
+⚠️  Port 5000 is already in use
+✅ Auto-selected available port 5001
+
+🚀 Starting MCP Generator Web UI...
+📍 Open your browser at: http://localhost:5001
+🛑 Press Ctrl+C to stop
+```
+
+**Advanced Options:**
+```bash
+# Use a specific port
 python web_app.py --port 8080
 
-# Option 2: Auto-find available port
-python web_app.py --auto-port
+# Disable auto-port (fail if port is busy)
+python web_app.py --no-auto-port
 
-# Option 3: See all options
+# See all options
 python web_app.py --help
-```
-
-You should see:
-```
-🚀 Starting MCP Generator Web UI...
-📍 Open your browser at: http://localhost:5000
-🛑 Press Ctrl+C to stop
 ```
 
 ### 3. Open Your Browser
 
-Navigate to the URL shown in the terminal (usually **http://localhost:5000**)
+Navigate to the URL shown in the terminal (check the output for the actual port)
 
 ## 📖 How to Use
 
@@ -269,24 +275,25 @@ The ZIP contains:
 
 ### Port Already in Use
 
-If port 5000 is already in use, you have three options:
+**Good news!** Port selection is now **automatic by default**. Just run:
 
-**Option 1: Use Auto-Port (Recommended)**
 ```bash
-python web_app.py --auto-port
-# Automatically finds an available port
+python web_app.py
 ```
 
-**Option 2: Specify a Different Port**
+If port 5000 is busy, the app will automatically find an available port (5001, 5002, etc.)
+
+**Still having issues?**
+
+**Option 1: Specify a Different Port**
 ```bash
 python web_app.py --port 8080
-# Uses port 8080 instead
 ```
 
-**Option 3: Kill the Process Using Port 5000**
+**Option 2: Kill the Process (if needed)**
 ```bash
 # On macOS/Linux
-lsof -i :5000
+lsof -i :5000 | grep LISTEN
 kill -9 <PID>
 
 # On Windows

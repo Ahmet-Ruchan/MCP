@@ -45,20 +45,22 @@ MCP Generator is a code generation tool that creates complete, production-ready 
    python web_app.py
    ```
 
-   **Port already in use?** Use these options:
+   **🎯 Auto-port is enabled by default!** If port 5000 is busy, it automatically finds the next available port.
+
+   **Advanced options:**
    ```bash
-   # Use a different port
+   # Use a specific port
    python web_app.py --port 8080
 
-   # Auto-find available port
-   python web_app.py --auto-port
+   # Disable auto-port (fail if port is busy)
+   python web_app.py --no-auto-port
    ```
 
 3. **Open your browser:**
    ```
    http://localhost:5000
    ```
-   (Or the port shown in the terminal)
+   (Or check the terminal for the actual port used)
 
 4. **Create your server through the wizard!**
    - Follow the step-by-step guide
