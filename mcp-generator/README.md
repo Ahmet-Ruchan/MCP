@@ -23,105 +23,118 @@ MCP Generator is a code generation tool that creates complete, production-ready 
 - 🤖 **AI Assistant Integration**: Works with Cursor, Claude Code, and other MCP-compatible tools
 - 🎨 **Modern UI**: Responsive design with smooth animations and Tailwind CSS
 
-## Installation
+## Installation & Usage
 
 ### Prerequisites
 
 - Python 3.10 or higher
 - pip package manager
 
-### Setup
+### 🚀 Quick Start
 
-#### Option 1: Web Interface (Recommended for Beginners) 🌐
+Choose your preferred method:
 
-**⭐ NEW: Streamlit Version Available!** (Easier and more reliable)
+---
 
-Choose one of these two web interface options:
+### Method 1: Web Interface (Easiest!) ⭐ RECOMMENDED
 
-##### 🚀 A) Streamlit Version (Recommended - Easier!) ⭐
-
-**Fastest way to get started - no port issues!**
+**Perfect for:** Everyone! No coding needed.
 
 ```bash
 cd mcp-generator
 
-# Install Streamlit
-pip install streamlit
-
-# Start the app (choose one):
+# Quick start - Interactive launcher
 ./start.sh          # Mac/Linux
 start.bat           # Windows
-streamlit run streamlit_app.py  # Any platform
+
+# OR directly launch web interface
+./start_web.sh      # Mac/Linux
+start_web.bat       # Windows
+
+# OR manual launch
+pip install streamlit
+streamlit run streamlit_app.py
 ```
 
-The browser will open automatically at `http://localhost:8501`
+**Features:**
+- ✅ Opens automatically in your browser at `http://localhost:8501`
+- ✅ No port conflicts - Streamlit handles it!
+- ✅ Beautiful step-by-step wizard
+- ✅ Download generated servers as ZIP
 
-👉 **See [STREAMLIT_GUIDE.md](STREAMLIT_GUIDE.md) for detailed Streamlit guide**
+👉 **See [STREAMLIT_GUIDE.md](STREAMLIT_GUIDE.md) for detailed guide**
 
-##### 🌐 B) FastAPI Version (Advanced Users)
+---
 
-If you need REST API functionality:
+### Method 2: MCP Server Mode (For Claude Desktop)
 
-1. **Install web dependencies:**
-   ```bash
-   cd mcp-generator
-   pip install -r web_requirements.txt
-   ```
+**Perfect for:** Using with Claude Desktop, Cursor, or other MCP clients
 
-2. **Start the web server:**
-   ```bash
-   python web_app.py
-   ```
+```bash
+cd mcp-generator
 
-   **🎯 Auto-port is enabled by default!** If port 5000 is busy, it automatically finds the next available port.
+# Quick start
+./start_mcp.sh      # Mac/Linux
+start_mcp.bat       # Windows
 
-   **Advanced options:**
-   ```bash
-   # Use a specific port
-   python web_app.py --port 8080
+# OR manual launch
+python server.py
+```
 
-   # Disable auto-port (fail if port is busy)
-   python web_app.py --no-auto-port
-   ```
+**Configuration:**
 
-3. **Open your browser:**
-   ```
-   http://localhost:5000
-   ```
-   (Or check the terminal for the actual port used)
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on Mac):
 
-👉 **See [WEB_APP_GUIDE.md](WEB_APP_GUIDE.md) for detailed FastAPI guide**
+```json
+{
+  "mcpServers": {
+    "mcp-generator": {
+      "command": "python",
+      "args": ["/absolute/path/to/mcp-generator/server.py"]
+    }
+  }
+}
+```
 
-**💡 Recommendation:** Use **Streamlit version** if you just want a simple web interface. Use **FastAPI version** if you need API access.
-
-#### Option 2: AI Assistant Integration (For Advanced Users) 🤖
-
-1. **Install dependencies:**
-   ```bash
-   cd mcp-generator
-   pip install -r requirements.txt
-   ```
-
-2. **Configure in Cursor/Claude Code:**
-
-   Add to your MCP configuration file (`~/.cursor/mcp.json` or `~/.config/claude-code/mcp.json`):
-
-   ```json
-   {
-     "mcpServers": {
-       "mcp-generator": {
-         "command": "python",
-         "args": ["/absolute/path/to/mcp-generator/server.py"]
-       }
-     }
-   }
-   ```
-
-3. **Restart your AI tool** (Cursor/Claude Code)
-
-4. **Ask your AI assistant to generate servers for you!**
+**Features:**
+- 🤖 Generate servers by talking to Claude
+- 🔧 Access via MCP tools
+- 📝 Example configurations included
 
 👉 **See [DETAILED_README.md](DETAILED_README.md) for comprehensive documentation**
+
+---
+
+### Method 3: FastAPI (Advanced)
+
+**Perfect for:** Developers who need REST API access
+
+```bash
+cd mcp-generator
+pip install -r web_requirements.txt
+
+# Start server (auto-finds available port)
+python web_app.py
+
+# Custom port
+python web_app.py --port 8080
+```
+
+Open browser at `http://localhost:5000` (or check terminal for actual port)
+
+👉 **See [WEB_APP_GUIDE.md](WEB_APP_GUIDE.md) for detailed guide**
+
+---
+
+### 💡 Which Method Should I Use?
+
+| Method | Use When | Difficulty |
+|--------|----------|-----------|
+| **Web Interface (Streamlit)** ⭐ | You want a simple UI | 🟢 Easy |
+| **MCP Server Mode** | Using with Claude Desktop | 🟡 Medium |
+| **FastAPI** | Need REST API | 🔴 Advanced |
+
+**Recommendation:** Start with the **Web Interface (Streamlit)**! It's the easiest and most user-friendly.
 
 ## Available Tools
 

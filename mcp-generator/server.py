@@ -749,5 +749,120 @@ async def main():
         )
 
 
+# MCPGenerator class for programmatic use (e.g., web interfaces)
+class MCPGenerator:
+    """
+    Wrapper class for generating MCP servers programmatically.
+    This class is used by web interfaces (Streamlit, FastAPI) to generate servers.
+    """
+
+    def __init__(self):
+        self.template = MCPTemplate()
+
+    def generate_from_config(self, config: dict) -> str:
+        """
+        Generate an MCP server from a configuration dictionary.
+
+        Args:
+            config: Dictionary containing:
+                - name: Server name
+                - description: Server description
+                - type: Server type ('tool', 'resource', 'full')
+                - tools: List of tool definitions (for tool/full servers)
+                - resources: List of resource definitions (for resource/full servers)
+                - prompts: List of prompt definitions (for full servers)
+
+        Returns:
+            Generated server.py code as a string
+        """
+        name = config.get('name', 'my-server')
+        description = config.get('description', 'Generated MCP server')
+        server_type = config.get('type', 'tool')
+
+        # Generate based on server type
+        if server_type == 'tool':
+            tools = config.get('tools', [])
+            files = self.template.basic_tool_server(name, description, tools)
+            return files['server.py']
+
+        elif server_type == 'resource':
+            resources = config.get('resources', [])
+            files = self.template.resource_server(name, description, resources)
+            return files['server.py']
+
+        elif server_type == 'full':
+            full_config = {
+                'tools': config.get('tools', []),
+                'resources': config.get('resources', []),
+                'prompts': config.get('prompts', [])
+            }
+            files = self.template.full_server(name, description, full_config)
+            return files['server.py']
+
+        else:
+            raise ValueError(f"Unknown server type: {server_type}")
+
+    def generate_server(self, name: str, description: str, server_type: str,
+                       output_dir: str = "./output", config: Optional[dict] = None) -> dict:
+        """
+        Generate a complete MCP server with all files.
+
+        Args:
+            name: Server name
+            description: Server description
+            server_type: Type of server ('tool', 'resource', 'full')
+            output_dir: Output directory path
+            config: Configuration dictionary with tools/resources/prompts
+
+        Returns:
+            Dictionary with 'success', 'message', and 'files' keys
+        """
+        try:
+            # Create output directory
+            output_path = Path(output_dir) / name
+            output_path.mkdir(parents=True, exist_ok=True)
+
+            # Generate files based on server type
+            if server_type == 'tool':
+                tools = config.get('tools', []) if config else []
+                files = self.template.basic_tool_server(name, description, tools)
+
+            elif server_type == 'resource':
+                resources = config.get('resources', []) if config else []
+                files = self.template.resource_server(name, description, resources)
+
+            elif server_type == 'full':
+                full_config = config if config else {'tools': [], 'resources': [], 'prompts': []}
+                files = self.template.full_server(name, description, full_config)
+
+            else:
+                return {
+                    'success': False,
+                    'message': f"Unknown server type: {server_type}",
+                    'files': []
+                }
+
+            # Write files
+            created_files = []
+            for filename, content in files.items():
+                file_path = output_path / filename
+                file_path.write_text(content)
+                created_files.append(str(file_path))
+
+            return {
+                'success': True,
+                'message': f"Successfully generated {name} server",
+                'files': created_files,
+                'output_dir': str(output_path)
+            }
+
+        except Exception as e:
+            return {
+                'success': False,
+                'message': f"Error generating server: {str(e)}",
+                'files': []
+            }
+
+
 if __name__ == "__main__":
     asyncio.run(main())

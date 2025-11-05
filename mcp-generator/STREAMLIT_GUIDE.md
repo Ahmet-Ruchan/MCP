@@ -28,9 +28,11 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Çalıştırma (3 Yöntem)
+## 🚀 Çalıştırma (4 Kolay Yöntem)
 
-### Yöntem 1: Basit Script (Önerilen) ⭐
+### Yöntem 1: İnteraktif Launcher (Önerilen) ⭐
+
+Bu script hem Web Interface hem de MCP Server seçeneği sunar:
 
 **Mac/Linux:**
 ```bash
@@ -42,17 +44,43 @@ pip install -r requirements.txt
 start.bat
 ```
 
-### Yöntem 2: Direkt Streamlit Komutu
+Menüden seçim yaparsın:
+```
+1) Web Interface (Streamlit) - Recommended ⭐
+2) MCP Server (Python stdio)
+```
+
+### Yöntem 2: Direkt Web Interface
+
+Sadece web arayüzü için:
+
+**Mac/Linux:**
+```bash
+./start_web.sh
+```
+
+**Windows:**
+```bash
+start_web.bat
+```
+
+### Yöntem 3: Manuel Streamlit Komutu
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-### Yöntem 3: Belirli Port'ta Çalıştır
+### Yöntem 4: Belirli Port'ta Çalıştır
 
 ```bash
 streamlit run streamlit_app.py --server.port 8080
 ```
+
+### 💡 Hangisini Kullanmalıyım?
+
+- **İlk kez kullanıyorsan:** `./start.sh` (veya `.bat`)
+- **Sadece web interface istiyorsan:** `./start_web.sh` (veya `.bat`)
+- **MCP Server olarak kullanmak istiyorsan:** `./start_mcp.sh` (veya `.bat`)
 
 ---
 
