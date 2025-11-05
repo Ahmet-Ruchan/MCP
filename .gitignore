@@ -1,3 +1,4 @@
 mcp-generator/test-output/
 __pycache__/
 *.pyc
+test-output/
