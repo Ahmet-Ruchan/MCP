@@ -34,7 +34,7 @@ class MCPTemplate:
     def basic_tool_server(name: str, description: str, tools: list[dict]) -> dict:
         """Generate a basic tool-based MCP server"""
 
-        tool_implementations = []
+        tool_handlers = []
         tool_definitions = []
         newline = "\n"
 
@@ -44,22 +44,16 @@ class MCPTemplate:
             tool_params = tool.get("parameters", [])
 
             # Generate tool implementation
-            params_str = ", ".join([f"{p['name']}: {p.get('type', 'str')}" for p in tool_params])
             param_extraction = newline.join([f"        {p['name']} = arguments.get('{p['name']}')" for p in tool_params])
-            tool_implementations.append(f'''
-@app.call_tool()
-async def call_tool(name: str, arguments: Any) -> list[TextContent]:
-    """Handle tool execution requests"""
+            tool_handlers.append(f'''
     if name == "{tool_name}":
         # Extract parameters
-        {param_extraction}
+{param_extraction}
 
         # TODO: Implement {tool_name} logic here
         result = f"Executed {tool_name}"
 
         return [TextContent(type="text", text=result)]
-
-    raise ValueError(f"Unknown tool: {{name}}")
 ''')
 
             # Generate tool definition
@@ -79,7 +73,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             name="{tool_name}",
             description="{tool_desc}",
             inputSchema={json.dumps(input_schema, indent=16)}
-        )''')
+        ),''')
 
         code = f'''#!/usr/bin/env python3
 """
@@ -102,7 +96,12 @@ async def list_tools() -> list[Tool]:
     return [{"".join(tool_definitions)}
     ]
 
-{"".join(tool_implementations)}
+@app.call_tool()
+async def call_tool(name: str, arguments: Any) -> list[TextContent]:
+    """Handle tool execution requests"""
+{"".join(tool_handlers)}
+
+    raise ValueError(f"Unknown tool: {{name}}")
 
 async def main():
     """Run the MCP server"""
@@ -148,7 +147,7 @@ if __name__ == "__main__":
             name="{res_name}",
             description="{res_desc}",
             mimeType="text/plain" if "{res_type}" == "text" else "application/json"
-        )''')
+        ),''')
 
         code = f'''#!/usr/bin/env python3
 """
@@ -230,7 +229,7 @@ if __name__ == "__main__":
             name="{tool_name}",
             description="{tool_desc}",
             inputSchema={json.dumps(input_schema, indent=16)}
-        )''')
+        ),''')
 
             tool_handlers.append(f'''
     if name == "{tool_name}":
@@ -253,7 +252,7 @@ if __name__ == "__main__":
             name="{res_name}",
             description="{res_desc}",
             mimeType="text/plain"
-        )''')
+        ),''')
 
             resource_handlers.append(f'''
     if uri.startswith("{res_uri}"):
