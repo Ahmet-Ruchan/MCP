@@ -353,7 +353,7 @@ if __name__ == "__main__":
         "--port",
         type=int,
         default=5000,
-        help="Port to run the server on (default: 5000)"
+        help="Port to run the server on (default: 5000, auto-finds if busy)"
     )
     parser.add_argument(
         "--host",
@@ -362,38 +362,43 @@ if __name__ == "__main__":
         help="Host to bind to (default: 0.0.0.0)"
     )
     parser.add_argument(
-        "--auto-port",
+        "--no-auto-port",
         action="store_true",
-        help="Automatically find an available port if the specified port is in use"
+        help="Disable automatic port selection - fail if port is busy"
     )
 
     args = parser.parse_args()
 
-    port = args.port
+    requested_port = args.port
+    port = requested_port
 
-    # Check if port is available BEFORE trying to start uvicorn
+    # By default, auto-find available port if requested port is busy
+    # User can disable this with --no-auto-port
     if not is_port_available(args.host, port):
-        if args.auto_port:
-            try:
-                port = find_available_port(port)
-                print(f"⚠️  Port {args.port} is already in use")
-                print(f"✅ Using available port {port} instead\n")
-            except RuntimeError as e:
-                print(f"❌ Error: {e}")
-                sys.exit(1)
-        else:
-            # Port is in use and auto-port is not enabled
+        if args.no_auto_port:
+            # User explicitly disabled auto-port
             print()
             print(f"❌ Error: Port {port} is already in use!")
             print()
             print("💡 Solutions:")
             print(f"   1. Use a different port: python web_app.py --port 8080")
-            print(f"   2. Use auto-port mode: python web_app.py --auto-port")
+            print(f"   2. Enable auto-port (remove --no-auto-port flag)")
             print(f"   3. Kill the process using port {port}:")
             print(f"      - macOS/Linux: lsof -i :{port} | grep LISTEN")
             print(f"      - Windows: netstat -ano | findstr :{port}")
             print()
             sys.exit(1)
+        else:
+            # Auto-port is enabled by default
+            try:
+                port = find_available_port(requested_port)
+                if port != requested_port:
+                    print(f"⚠️  Port {requested_port} is already in use")
+                    print(f"✅ Auto-selected available port {port}\n")
+            except RuntimeError as e:
+                print(f"❌ Error: {e}")
+                print("💡 Try specifying a different port range")
+                sys.exit(1)
 
     print("🚀 Starting MCP Generator Web UI...")
     print(f"📍 Open your browser at: http://localhost:{port}")
