@@ -2,18 +2,26 @@
 
 A **Model Context Protocol (MCP) server that generates other MCP servers**. This meta-MCP tool helps developers quickly scaffold new MCP servers with best practices and proper structure.
 
+## 🌟 NEW: Web Interface Available!
+
+Now with a **beautiful web interface** for creating MCP servers without writing any code! 🎉
+
+![Web Interface](https://img.shields.io/badge/Web-Interface-brightgreen) ![Python](https://img.shields.io/badge/Python-3.10+-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-Modern-orange)
+
 ## What is MCP Generator?
 
 MCP Generator is a code generation tool that creates complete, production-ready MCP servers from simple configurations. Instead of manually writing boilerplate code, you describe what you want and MCP Generator creates the entire server structure for you.
 
 ## Features
 
-- **Multiple Server Types**: Generate tool-based, resource-based, or full-featured MCP servers
-- **Template-Based Generation**: Uses best practices and proven patterns
-- **Automatic File Structure**: Creates all necessary files (server.py, README.md, requirements.txt)
-- **Configuration Validation**: Validates your configuration before generation
-- **Example Configs**: Provides example configurations to get started quickly
-- **Interactive Documentation**: Built-in help and examples
+- ✨ **Beautiful Web Interface**: Step-by-step wizard for easy server creation (NEW!)
+- 🚀 **Multiple Server Types**: Generate tool-based, resource-based, or full-featured MCP servers
+- 📝 **Template-Based Generation**: Uses best practices and proven patterns
+- 📁 **Automatic File Structure**: Creates all necessary files (server.py, README.md, requirements.txt)
+- ✅ **Configuration Validation**: Validates your configuration before generation
+- 📚 **Example Configs**: Provides example configurations to get started quickly
+- 🤖 **AI Assistant Integration**: Works with Cursor, Claude Code, and other MCP-compatible tools
+- 🎨 **Modern UI**: Responsive design with smooth animations and Tailwind CSS
 
 ## Installation
 
@@ -24,18 +32,40 @@ MCP Generator is a code generation tool that creates complete, production-ready 
 
 ### Setup
 
+#### Option 1: Web Interface (Recommended for Beginners) 🌐
+
+1. **Install web dependencies:**
+   ```bash
+   cd mcp-generator
+   pip install -r web_requirements.txt
+   ```
+
+2. **Start the web server:**
+   ```bash
+   python web_app.py
+   ```
+
+3. **Open your browser:**
+   ```
+   http://localhost:5000
+   ```
+
+4. **Create your server through the wizard!**
+   - Follow the step-by-step guide
+   - Configure tools, resources, and prompts
+   - Download your generated server
+
+👉 **See [WEB_APP_GUIDE.md](WEB_APP_GUIDE.md) for detailed web interface instructions**
+
+#### Option 2: AI Assistant Integration (For Advanced Users) 🤖
+
 1. **Install dependencies:**
    ```bash
    cd mcp-generator
    pip install -r requirements.txt
    ```
 
-2. **Run the server (for testing):**
-   ```bash
-   python server.py
-   ```
-
-3. **Configure in Cursor/Claude Code:**
+2. **Configure in Cursor/Claude Code:**
 
    Add to your MCP configuration file (`~/.cursor/mcp.json` or `~/.config/claude-code/mcp.json`):
 
@@ -50,7 +80,11 @@ MCP Generator is a code generation tool that creates complete, production-ready 
    }
    ```
 
-4. **Restart your AI tool** (Cursor/Claude Code)
+3. **Restart your AI tool** (Cursor/Claude Code)
+
+4. **Ask your AI assistant to generate servers for you!**
+
+👉 **See [DETAILED_README.md](DETAILED_README.md) for comprehensive documentation**
 
 ## Available Tools
 
