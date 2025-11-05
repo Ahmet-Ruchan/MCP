@@ -34,6 +34,34 @@ MCP Generator is a code generation tool that creates complete, production-ready 
 
 #### Option 1: Web Interface (Recommended for Beginners) 🌐
 
+**⭐ NEW: Streamlit Version Available!** (Easier and more reliable)
+
+Choose one of these two web interface options:
+
+##### 🚀 A) Streamlit Version (Recommended - Easier!) ⭐
+
+**Fastest way to get started - no port issues!**
+
+```bash
+cd mcp-generator
+
+# Install Streamlit
+pip install streamlit
+
+# Start the app (choose one):
+./start.sh          # Mac/Linux
+start.bat           # Windows
+streamlit run streamlit_app.py  # Any platform
+```
+
+The browser will open automatically at `http://localhost:8501`
+
+👉 **See [STREAMLIT_GUIDE.md](STREAMLIT_GUIDE.md) for detailed Streamlit guide**
+
+##### 🌐 B) FastAPI Version (Advanced Users)
+
+If you need REST API functionality:
+
 1. **Install web dependencies:**
    ```bash
    cd mcp-generator
@@ -62,12 +90,9 @@ MCP Generator is a code generation tool that creates complete, production-ready 
    ```
    (Or check the terminal for the actual port used)
 
-4. **Create your server through the wizard!**
-   - Follow the step-by-step guide
-   - Configure tools, resources, and prompts
-   - Download your generated server
+👉 **See [WEB_APP_GUIDE.md](WEB_APP_GUIDE.md) for detailed FastAPI guide**
 
-👉 **See [WEB_APP_GUIDE.md](WEB_APP_GUIDE.md) for detailed web interface instructions**
+**💡 Recommendation:** Use **Streamlit version** if you just want a simple web interface. Use **FastAPI version** if you need API access.
 
 #### Option 2: AI Assistant Integration (For Advanced Users) 🤖
 
