@@ -331,6 +331,18 @@ def find_available_port(start_port: int = 5000, max_attempts: int = 10) -> int:
     raise RuntimeError(f"Could not find available port in range {start_port}-{start_port + max_attempts}")
 
 
+def is_port_available(host: str, port: int) -> bool:
+    """Check if a port is available"""
+    import socket
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((host, port))
+            return True
+    except OSError:
+        return False
+
+
 if __name__ == "__main__":
     import uvicorn
     import argparse
@@ -359,15 +371,28 @@ if __name__ == "__main__":
 
     port = args.port
 
-    # Try to find available port if auto-port is enabled or default port is in use
-    if args.auto_port:
-        try:
-            port = find_available_port(args.port)
-            if port != args.port:
+    # Check if port is available BEFORE trying to start uvicorn
+    if not is_port_available(args.host, port):
+        if args.auto_port:
+            try:
+                port = find_available_port(port)
                 print(f"⚠️  Port {args.port} is already in use")
-                print(f"✅ Using available port {port} instead")
-        except RuntimeError as e:
-            print(f"❌ Error: {e}")
+                print(f"✅ Using available port {port} instead\n")
+            except RuntimeError as e:
+                print(f"❌ Error: {e}")
+                sys.exit(1)
+        else:
+            # Port is in use and auto-port is not enabled
+            print()
+            print(f"❌ Error: Port {port} is already in use!")
+            print()
+            print("💡 Solutions:")
+            print(f"   1. Use a different port: python web_app.py --port 8080")
+            print(f"   2. Use auto-port mode: python web_app.py --auto-port")
+            print(f"   3. Kill the process using port {port}:")
+            print(f"      - macOS/Linux: lsof -i :{port} | grep LISTEN")
+            print(f"      - Windows: netstat -ano | findstr :{port}")
+            print()
             sys.exit(1)
 
     print("🚀 Starting MCP Generator Web UI...")
@@ -375,18 +400,4 @@ if __name__ == "__main__":
     print("🛑 Press Ctrl+C to stop")
     print()
 
-    try:
-        uvicorn.run(app, host=args.host, port=port)
-    except OSError as e:
-        if "Address already in use" in str(e) or "address already in use" in str(e):
-            print()
-            print(f"❌ Error: Port {port} is already in use!")
-            print()
-            print("💡 Solutions:")
-            print(f"   1. Use a different port: python web_app.py --port 8080")
-            print(f"   2. Use auto-port mode: python web_app.py --auto-port")
-            print(f"   3. Kill the process using port {port}")
-            print()
-            sys.exit(1)
-        else:
-            raise
+    uvicorn.run(app, host=args.host, port=port)
