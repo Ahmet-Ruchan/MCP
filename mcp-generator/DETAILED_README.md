@@ -274,6 +274,10 @@ cd /path/to/MCP/mcp-generator
 python web_app.py
 # Open http://localhost:5000 in your browser
 
+# If port 5000 is in use:
+python web_app.py --port 8080        # Use port 8080
+python web_app.py --auto-port        # Auto-find available port
+
 # Option 2: Command Line
 python -c "from server import MCPTemplate; print(MCPTemplate.basic_tool_server(...))"
 
@@ -339,12 +343,17 @@ AI: ✅ Configuration is valid!
    ```bash
    cd mcp-generator
    python web_app.py
+
+   # If port 5000 is in use:
+   python web_app.py --port 8080     # Different port
+   python web_app.py --auto-port     # Auto-find port
    ```
 
 2. **Open your browser:**
    ```
    http://localhost:5000
    ```
+   (Or the port shown in terminal)
 
 3. **Follow the wizard:**
 
@@ -780,12 +789,15 @@ where python  # Windows
 
 **Solution:**
 ```bash
-# Check if port 5000 is available
+# Option 1: Use auto-port (recommended)
+python web_app.py --auto-port
+
+# Option 2: Use different port
+python web_app.py --port 8080
+
+# Option 3: Check what's using port 5000
 lsof -i :5000  # macOS/Linux
 netstat -ano | findstr :5000  # Windows
-
-# Try different port
-python web_app.py --port 8080
 ```
 
 ---

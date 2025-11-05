@@ -17,6 +17,18 @@ pip install -r web_requirements.txt
 python web_app.py
 ```
 
+**If port 5000 is already in use:**
+```bash
+# Option 1: Use a different port
+python web_app.py --port 8080
+
+# Option 2: Auto-find available port
+python web_app.py --auto-port
+
+# Option 3: See all options
+python web_app.py --help
+```
+
 You should see:
 ```
 🚀 Starting MCP Generator Web UI...
@@ -26,7 +38,7 @@ You should see:
 
 ### 3. Open Your Browser
 
-Navigate to: **http://localhost:5000**
+Navigate to the URL shown in the terminal (usually **http://localhost:5000**)
 
 ## 📖 How to Use
 
@@ -257,15 +269,29 @@ The ZIP contains:
 
 ### Port Already in Use
 
-If port 5000 is already in use:
+If port 5000 is already in use, you have three options:
 
+**Option 1: Use Auto-Port (Recommended)**
 ```bash
-# Find and kill the process
+python web_app.py --auto-port
+# Automatically finds an available port
+```
+
+**Option 2: Specify a Different Port**
+```bash
+python web_app.py --port 8080
+# Uses port 8080 instead
+```
+
+**Option 3: Kill the Process Using Port 5000**
+```bash
+# On macOS/Linux
 lsof -i :5000
 kill -9 <PID>
 
-# Or use a different port
-python web_app.py --port 8080
+# On Windows
+netstat -ano | findstr :5000
+taskkill /PID <PID> /F
 ```
 
 ### Module Not Found Errors
