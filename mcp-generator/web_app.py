@@ -18,7 +18,17 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from anthropic import Anthropic
+
+# Optional: Claude AI integration
+try:
+    from anthropic import Anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+    print("⚠️  Warning: 'anthropic' package not installed.")
+    print("   Claude AI features will be disabled.")
+    print("   Install with: pip install anthropic")
+    print()
 
 # Mock MCP imports for web usage
 class MockServer:
@@ -173,6 +183,9 @@ async def validate_config(config: Dict[str, Any]):
 
 def generate_with_claude(config: dict, api_key: str) -> tuple[Optional[str], Optional[str]]:
     """Generate MCP server code using Claude API"""
+    if not ANTHROPIC_AVAILABLE:
+        return None, "Claude AI integration requires 'anthropic' package. Install with: pip install anthropic"
+
     try:
         client = Anthropic(api_key=api_key)
 
@@ -258,6 +271,13 @@ The code should be immediately runnable."""
 @app.post("/api/generate-with-claude")
 async def generate_with_claude_api(request: Dict[str, Any]):
     """Generate MCP server using Claude AI"""
+    # Check if anthropic is available
+    if not ANTHROPIC_AVAILABLE:
+        return JSONResponse({
+            "success": False,
+            "message": "❌ Claude AI integration requires 'anthropic' package.\n\nInstall with: pip install anthropic\n\nAlternatively, use template-based generation (legacy /api/generate endpoint)."
+        }, status_code=503)
+
     try:
         api_key = request.get("api_key")
         name = request.get("name")
@@ -622,6 +642,14 @@ if __name__ == "__main__":
 
     print("🚀 Starting MCP Generator Web UI...")
     print(f"📍 Open your browser at: http://localhost:{port}")
+
+    # Show Claude AI status
+    if ANTHROPIC_AVAILABLE:
+        print("🤖 Claude AI: ✅ Available")
+    else:
+        print("🤖 Claude AI: ⚠️  Not available (install with: pip install anthropic)")
+        print("   📝 Template-based generation will be used as fallback")
+
     print("🛑 Press Ctrl+C to stop")
     print()
 
