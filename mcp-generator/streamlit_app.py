@@ -1,6 +1,6 @@
 """
-MCP Generator - Streamlit Web Interface
-A simple and reliable web interface for generating MCP servers.
+MCP Generator - AI-Powered Streamlit Web Interface
+Modern, user-friendly interface with Claude API integration for smart MCP server generation.
 """
 
 import streamlit as st
@@ -9,81 +9,179 @@ import zipfile
 import io
 import os
 import sys
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
+from anthropic import Anthropic
 
 # Add parent directory to path to import server module
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from server import MCPGenerator
 
 # Page configuration
 st.set_page_config(
-    page_title="MCP Generator",
-    page_icon="🔧",
+    page_title="MCP Generator - AI Powered",
+    page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Custom CSS for modern look
 st.markdown("""
 <style>
+    /* Main container styling */
+    .main {
+        padding: 2rem;
+    }
+
+    /* Header styling */
     .main-header {
-        text-align: center;
-        padding: 2rem 0;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border-radius: 10px;
+        padding: 2.5rem;
+        border-radius: 15px;
+        text-align: center;
         margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .step-container {
+
+    .main-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .main-header p {
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    /* Section styling */
+    .section-container {
         background: #f8f9fa;
-        padding: 2rem;
+        padding: 1.5rem;
         border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    /* Input styling */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > select {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        padding: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Button styling */
+    .stButton > button {
+        width: 100%;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Code block styling */
+    .code-container {
+        background: #1e1e1e;
+        border-radius: 10px;
+        padding: 1rem;
         margin: 1rem 0;
     }
-    .success-box {
-        padding: 1rem;
+
+    /* Success/Error messages */
+    .success-message {
         background: #d4edda;
         border: 1px solid #c3e6cb;
-        border-radius: 5px;
-        color: #155724;
-    }
-    .info-box {
+        border-radius: 8px;
         padding: 1rem;
-        background: #d1ecf1;
-        border: 1px solid #bee5eb;
-        border-radius: 5px;
-        color: #0c5460;
+        color: #155724;
+        margin: 1rem 0;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        color: #721c24;
+        margin: 1rem 0;
+    }
+
+    /* Item card styling */
+    .item-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .item-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-color: #667eea;
+    }
+
+    /* Badge styling */
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+
+    .badge-tool {
+        background: #667eea;
+        color: white;
+    }
+
+    .badge-resource {
+        background: #48bb78;
+        color: white;
+    }
+
+    .badge-prompt {
+        background: #ed8936;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # Initialize session state
-if 'step' not in st.session_state:
-    st.session_state.step = 1
-if 'config' not in st.session_state:
-    st.session_state.config = {}
 if 'tools' not in st.session_state:
     st.session_state.tools = []
 if 'resources' not in st.session_state:
     st.session_state.resources = []
 if 'prompts' not in st.session_state:
     st.session_state.prompts = []
-
-def reset_wizard():
-    """Reset wizard to initial state"""
-    st.session_state.step = 1
-    st.session_state.config = {}
-    st.session_state.tools = []
-    st.session_state.resources = []
-    st.session_state.prompts = []
-
-def next_step():
-    """Move to next step"""
-    st.session_state.step += 1
-
-def prev_step():
-    """Move to previous step"""
-    st.session_state.step -= 1
+if 'generated_code' not in st.session_state:
+    st.session_state.generated_code = None
+if 'generation_status' not in st.session_state:
+    st.session_state.generation_status = None
 
 def create_zip(server_code: str, server_name: str) -> bytes:
     """Create a zip file containing the generated server"""
@@ -94,25 +192,24 @@ def create_zip(server_code: str, server_name: str) -> bytes:
         zip_file.writestr(f'{server_name}/server.py', server_code)
 
         # Add requirements.txt
-        requirements = "mcp>=1.0.0\n"
+        requirements = "mcp>=1.0.0\nanthropic>=0.18.0\n"
         zip_file.writestr(f'{server_name}/requirements.txt', requirements)
 
         # Add README.md
         readme = f"""# {server_name}
 
+Generated by MCP Generator with Claude AI 🤖
+
 ## Installation
 
 ```bash
+cd {server_name}
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-```bash
-python server.py
-```
-
-## Configuration
+### As MCP Server (with Claude Desktop)
 
 Add to your Claude Desktop config:
 
@@ -126,390 +223,471 @@ Add to your Claude Desktop config:
   }}
 }}
 ```
+
+### Configuration Files
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%\\Claude\\claude_desktop_config.json`
+
+## Testing
+
+Run the server directly:
+
+```bash
+python server.py
+```
+
+The server communicates via stdio protocol.
+
+---
+
+Generated with ❤️ by [MCP Generator](https://github.com/your-repo/mcp-generator)
 """
         zip_file.writestr(f'{server_name}/README.md', readme)
 
     zip_buffer.seek(0)
     return zip_buffer.getvalue()
 
+def generate_with_claude(config: dict, api_key: str) -> tuple[Optional[str], Optional[str]]:
+    """Generate MCP server code using Claude API"""
+
+    try:
+        client = Anthropic(api_key=api_key)
+
+        # Prepare the prompt
+        server_type = config['type']
+        name = config['name']
+        description = config['description']
+
+        tools_desc = ""
+        if config.get('tools'):
+            tools_desc = "\n\nTools to implement:\n"
+            for tool in config['tools']:
+                params = ", ".join([f"{p['name']} ({p['type']})" for p in tool.get('parameters', [])])
+                tools_desc += f"- {tool['name']}: {tool['description']}\n  Parameters: {params}\n"
+
+        resources_desc = ""
+        if config.get('resources'):
+            resources_desc = "\n\nResources to provide:\n"
+            for resource in config['resources']:
+                resources_desc += f"- {resource['uri']}: {resource['name']} - {resource['description']}\n"
+
+        prompts_desc = ""
+        if config.get('prompts'):
+            prompts_desc = "\n\nPrompts to include:\n"
+            for prompt in config['prompts']:
+                prompts_desc += f"- {prompt['name']}: {prompt['description']}\n"
+
+        prompt = f"""You are an expert MCP (Model Context Protocol) server developer. Generate a complete, production-ready MCP server in Python.
+
+**Server Specification:**
+- Name: {name}
+- Type: {server_type}
+- Description: {description}
+{tools_desc}{resources_desc}{prompts_desc}
+
+**Requirements:**
+1. Use the official `mcp` Python library (version 1.0.0+)
+2. Follow MCP protocol best practices
+3. Include proper error handling and validation
+4. Add detailed docstrings and comments
+5. Use type hints throughout
+6. Make it production-ready with proper logging
+7. Include helpful TODO comments for customization
+8. Use async/await properly for all handlers
+9. Follow Python PEP 8 style guidelines
+
+**Important Implementation Details:**
+- Use `from mcp.server import Server` and `from mcp.server.stdio import stdio_server`
+- Implement proper decorators: `@app.list_tools()`, `@app.call_tool()`, etc.
+- Return proper MCP types: `TextContent`, `Tool`, `Resource`, etc.
+- Include a `main()` async function with proper stdio_server setup
+- Add `if __name__ == "__main__": asyncio.run(main())`
+
+Generate ONLY the complete Python code for server.py. Do not include explanations, just the code.
+The code should be immediately runnable."""
+
+        # Call Claude API
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=4000,
+            temperature=0.3,
+            messages=[{
+                "role": "user",
+                "content": prompt
+            }]
+        )
+
+        # Extract code from response
+        code = message.content[0].text
+
+        # Clean up code if it has markdown formatting
+        if "```python" in code:
+            code = code.split("```python")[1].split("```")[0].strip()
+        elif "```" in code:
+            code = code.split("```")[1].split("```")[0].strip()
+
+        return code, None
+
+    except Exception as e:
+        return None, f"Error generating code: {str(e)}"
+
 # Header
 st.markdown("""
 <div class="main-header">
-    <h1>🔧 MCP Generator</h1>
-    <p>Create custom MCP servers with a simple wizard</p>
+    <h1>🤖 MCP Generator</h1>
+    <p>AI-Powered MCP Server Generation with Claude</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Progress indicator
-progress = st.session_state.step / 4
-st.progress(progress)
-st.write(f"**Step {st.session_state.step} of 4**")
-st.markdown("---")
+# Sidebar - API Configuration
+with st.sidebar:
+    st.header("⚙️ Configuration")
 
-# Step 1: Basic Information
-if st.session_state.step == 1:
-    st.header("📝 Step 1: Basic Information")
+    api_key = st.text_input(
+        "Claude API Key",
+        type="password",
+        help="Get your API key from https://console.anthropic.com",
+        placeholder="sk-ant-..."
+    )
 
-    with st.container():
-        col1, col2 = st.columns(2)
-
-        with col1:
-            server_name = st.text_input(
-                "Server Name",
-                value=st.session_state.config.get('name', ''),
-                placeholder="my-awesome-server",
-                help="Name for your MCP server (lowercase, hyphens allowed)"
-            )
-
-        with col2:
-            server_type = st.selectbox(
-                "Server Type",
-                options=["tool", "resource", "full"],
-                index=["tool", "resource", "full"].index(st.session_state.config.get('type', 'tool')),
-                help="Choose the type of MCP server to generate"
-            )
-
-        description = st.text_area(
-            "Description",
-            value=st.session_state.config.get('description', ''),
-            placeholder="Describe what your server does...",
-            height=100
-        )
+    # Check for environment variable
+    if not api_key:
+        env_key = os.environ.get("ANTHROPIC_API_KEY")
+        if env_key:
+            api_key = env_key
+            st.success("✅ Using API key from environment")
+        else:
+            st.warning("⚠️ Please enter your Claude API key or set ANTHROPIC_API_KEY environment variable")
 
     st.markdown("---")
 
-    # Type descriptions
-    st.markdown("### 🔍 Server Type Information")
+    st.markdown("""
+    ### 🎯 How it works
 
+    1. **Fill in** server details
+    2. **Add** tools, resources, prompts
+    3. **Generate** with Claude AI
+    4. **Download** your MCP server
+
+    ### 📚 Resources
+
+    - [MCP Documentation](https://modelcontextprotocol.io)
+    - [Claude API Docs](https://docs.anthropic.com)
+    - [GitHub Repo](#)
+    """)
+
+    st.markdown("---")
+
+    # Statistics
+    st.markdown("""
+    ### 📊 Current Config
+    """)
+    st.metric("Tools", len(st.session_state.tools))
+    st.metric("Resources", len(st.session_state.resources))
+    st.metric("Prompts", len(st.session_state.prompts))
+
+# Main content area
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.markdown('<div class="section-title">📝 Basic Information</div>', unsafe_allow_html=True)
+
+    server_name = st.text_input(
+        "Server Name",
+        placeholder="my-awesome-server",
+        help="Use lowercase with hyphens"
+    )
+
+    server_type = st.selectbox(
+        "Server Type",
+        options=["tool", "resource", "full"],
+        help="Tool: Functions Claude can call | Resource: Data Claude can read | Full: Both + Prompts"
+    )
+
+    description = st.text_area(
+        "Description",
+        placeholder="Describe what your MCP server does...",
+        height=100,
+        help="Be specific about the server's purpose and capabilities"
+    )
+
+    # Type information
     type_info = {
         "tool": {
             "icon": "🛠️",
             "title": "Tool Server",
-            "desc": "Provides executable functions/tools that Claude can call"
+            "desc": "Provides executable functions that Claude can call to perform actions"
         },
         "resource": {
             "icon": "📚",
             "title": "Resource Server",
-            "desc": "Provides data/content that Claude can read"
+            "desc": "Provides data and content that Claude can read and use"
         },
         "full": {
             "icon": "🎯",
-            "title": "Full Server",
-            "desc": "Includes tools, resources, and prompts"
+            "title": "Full-Featured Server",
+            "desc": "Combines tools, resources, and prompts for complete functionality"
         }
     }
 
     info = type_info[server_type]
     st.info(f"{info['icon']} **{info['title']}**: {info['desc']}")
 
-    if st.button("Next →", type="primary", use_container_width=True):
-        if server_name and description:
-            st.session_state.config = {
-                'name': server_name,
-                'type': server_type,
-                'description': description
-            }
-            next_step()
-            st.rerun()
-        else:
-            st.error("Please fill in all required fields!")
+with col2:
+    st.markdown('<div class="section-title">🔧 Components</div>', unsafe_allow_html=True)
 
-# Step 2: Configuration
-elif st.session_state.step == 2:
-    st.header("⚙️ Step 2: Configuration")
-
-    server_type = st.session_state.config['type']
-
-    # Tools configuration
+    # Tabs for different components
     if server_type in ['tool', 'full']:
-        st.subheader("🛠️ Tools")
-        st.write("Add the tools your server will provide:")
-
-        # Display existing tools
-        for idx, tool in enumerate(st.session_state.tools):
-            with st.expander(f"Tool: {tool['name']}", expanded=False):
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    st.write(f"**Description:** {tool['description']}")
-                    st.write(f"**Parameters:** {', '.join(tool['parameters'].keys()) if tool['parameters'] else 'None'}")
-                with col2:
-                    if st.button("🗑️", key=f"del_tool_{idx}"):
-                        st.session_state.tools.pop(idx)
-                        st.rerun()
-
-        # Add new tool
-        with st.form("add_tool_form"):
-            st.write("**Add New Tool**")
-            col1, col2 = st.columns(2)
-            with col1:
+        with st.expander("➕ Add Tool", expanded=False):
+            with st.form("add_tool_form", clear_on_submit=True):
                 tool_name = st.text_input("Tool Name", placeholder="calculate")
-            with col2:
-                tool_desc = st.text_input("Description", placeholder="Performs calculations")
+                tool_desc = st.text_input("Description", placeholder="Performs mathematical calculations")
 
-            # Parameters
-            st.write("**Parameters** (one per line, format: `name:type:description`)")
-            params_text = st.text_area(
-                "Parameters",
-                placeholder="num1:number:First number\nnum2:number:Second number",
-                height=100,
-                label_visibility="collapsed"
-            )
+                st.markdown("**Parameters** (one per line: `name:type:description`)")
+                params_text = st.text_area(
+                    "Parameters",
+                    placeholder="amount:number:The amount to calculate\noperation:string:The operation to perform",
+                    height=80,
+                    label_visibility="collapsed"
+                )
 
-            if st.form_submit_button("Add Tool"):
-                if tool_name and tool_desc:
-                    # Parse parameters
-                    params = {}
-                    if params_text.strip():
-                        for line in params_text.strip().split('\n'):
-                            if ':' in line:
-                                parts = line.split(':')
-                                if len(parts) >= 2:
-                                    param_name = parts[0].strip()
-                                    param_type = parts[1].strip()
-                                    param_desc = parts[2].strip() if len(parts) > 2 else ""
-                                    params[param_name] = {
-                                        'type': param_type,
-                                        'description': param_desc
-                                    }
+                if st.form_submit_button("Add Tool", use_container_width=True):
+                    if tool_name and tool_desc:
+                        params = []
+                        if params_text.strip():
+                            for line in params_text.strip().split('\n'):
+                                if ':' in line:
+                                    parts = line.split(':')
+                                    if len(parts) >= 2:
+                                        params.append({
+                                            'name': parts[0].strip(),
+                                            'type': parts[1].strip(),
+                                            'description': parts[2].strip() if len(parts) > 2 else "",
+                                            'required': True
+                                        })
 
-                    st.session_state.tools.append({
-                        'name': tool_name,
-                        'description': tool_desc,
-                        'parameters': params
-                    })
-                    st.rerun()
+                        st.session_state.tools.append({
+                            'name': tool_name,
+                            'description': tool_desc,
+                            'parameters': params
+                        })
+                        st.success(f"✅ Added tool: {tool_name}")
+                        st.rerun()
 
-    # Resources configuration
     if server_type in ['resource', 'full']:
-        st.subheader("📚 Resources")
-        st.write("Add the resources your server will provide:")
+        with st.expander("➕ Add Resource", expanded=False):
+            with st.form("add_resource_form", clear_on_submit=True):
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    resource_uri = st.text_input("URI", placeholder="data://mydata")
+                    resource_name = st.text_input("Name", placeholder="My Data")
+                with col_b:
+                    resource_desc = st.text_input("Description", placeholder="Important data")
+                    resource_mime = st.selectbox("MIME Type", ["text/plain", "application/json", "text/html"])
 
-        # Display existing resources
-        for idx, resource in enumerate(st.session_state.resources):
-            with st.expander(f"Resource: {resource['uri']}", expanded=False):
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    st.write(f"**Name:** {resource['name']}")
-                    st.write(f"**Description:** {resource['description']}")
-                    st.write(f"**MIME Type:** {resource['mimeType']}")
-                with col2:
-                    if st.button("🗑️", key=f"del_resource_{idx}"):
-                        st.session_state.resources.pop(idx)
+                if st.form_submit_button("Add Resource", use_container_width=True):
+                    if resource_uri and resource_name:
+                        st.session_state.resources.append({
+                            'uri': resource_uri,
+                            'name': resource_name,
+                            'description': resource_desc,
+                            'mimeType': resource_mime
+                        })
+                        st.success(f"✅ Added resource: {resource_name}")
                         st.rerun()
 
-        # Add new resource
-        with st.form("add_resource_form"):
-            st.write("**Add New Resource**")
-            col1, col2 = st.columns(2)
-            with col1:
-                resource_uri = st.text_input("URI", placeholder="data://mydata")
-                resource_name = st.text_input("Name", placeholder="My Data")
-            with col2:
-                resource_desc = st.text_input("Description", placeholder="Contains important data")
-                resource_mime = st.text_input("MIME Type", value="text/plain")
-
-            if st.form_submit_button("Add Resource"):
-                if resource_uri and resource_name and resource_desc:
-                    st.session_state.resources.append({
-                        'uri': resource_uri,
-                        'name': resource_name,
-                        'description': resource_desc,
-                        'mimeType': resource_mime
-                    })
-                    st.rerun()
-
-    # Prompts configuration
     if server_type == 'full':
-        st.subheader("💬 Prompts")
-        st.write("Add the prompts your server will provide:")
+        with st.expander("➕ Add Prompt", expanded=False):
+            with st.form("add_prompt_form", clear_on_submit=True):
+                prompt_name = st.text_input("Prompt Name", placeholder="analyze")
+                prompt_desc = st.text_input("Description", placeholder="Analyzes data")
 
-        # Display existing prompts
-        for idx, prompt in enumerate(st.session_state.prompts):
-            with st.expander(f"Prompt: {prompt['name']}", expanded=False):
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    st.write(f"**Description:** {prompt['description']}")
-                with col2:
-                    if st.button("🗑️", key=f"del_prompt_{idx}"):
-                        st.session_state.prompts.pop(idx)
+                if st.form_submit_button("Add Prompt", use_container_width=True):
+                    if prompt_name and prompt_desc:
+                        st.session_state.prompts.append({
+                            'name': prompt_name,
+                            'description': prompt_desc
+                        })
+                        st.success(f"✅ Added prompt: {prompt_name}")
                         st.rerun()
 
-        # Add new prompt
-        with st.form("add_prompt_form"):
-            st.write("**Add New Prompt**")
-            prompt_name = st.text_input("Prompt Name", placeholder="analyze")
-            prompt_desc = st.text_input("Description", placeholder="Analyzes data")
+# Display added components
+st.markdown("---")
+st.markdown('<div class="section-title">📦 Your Components</div>', unsafe_allow_html=True)
 
-            if st.form_submit_button("Add Prompt"):
-                if prompt_name and prompt_desc:
-                    st.session_state.prompts.append({
-                        'name': prompt_name,
-                        'description': prompt_desc
-                    })
+col_tools, col_resources, col_prompts = st.columns(3)
+
+with col_tools:
+    if st.session_state.tools:
+        st.markdown("**🛠️ Tools**")
+        for idx, tool in enumerate(st.session_state.tools):
+            with st.container():
+                st.markdown(f"""
+                <div class="item-card">
+                    <strong>{tool['name']}</strong><br>
+                    <small>{tool['description']}</small><br>
+                    <small>Params: {len(tool['parameters'])}</small>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("🗑️", key=f"del_tool_{idx}"):
+                    st.session_state.tools.pop(idx)
                     st.rerun()
 
-    st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("← Back", use_container_width=True):
-            prev_step()
-            st.rerun()
-    with col2:
-        if st.button("Next →", type="primary", use_container_width=True):
-            # Validate based on server type
-            valid = True
-            if server_type == 'tool' and not st.session_state.tools:
-                st.error("Please add at least one tool!")
-                valid = False
-            elif server_type == 'resource' and not st.session_state.resources:
-                st.error("Please add at least one resource!")
-                valid = False
-            elif server_type == 'full' and (not st.session_state.tools or not st.session_state.resources):
-                st.error("Please add at least one tool and one resource!")
-                valid = False
-
-            if valid:
-                next_step()
-                st.rerun()
-
-# Step 3: Review
-elif st.session_state.step == 3:
-    st.header("👀 Step 3: Review Configuration")
-
-    st.subheader("📋 Basic Information")
-    st.write(f"**Name:** {st.session_state.config['name']}")
-    st.write(f"**Type:** {st.session_state.config['type']}")
-    st.write(f"**Description:** {st.session_state.config['description']}")
-
-    if st.session_state.tools:
-        st.subheader("🛠️ Tools")
-        for tool in st.session_state.tools:
-            with st.expander(f"{tool['name']}", expanded=False):
-                st.write(f"**Description:** {tool['description']}")
-                if tool['parameters']:
-                    st.write("**Parameters:**")
-                    for param_name, param_info in tool['parameters'].items():
-                        st.write(f"  - `{param_name}` ({param_info['type']}): {param_info['description']}")
-
+with col_resources:
     if st.session_state.resources:
-        st.subheader("📚 Resources")
-        for resource in st.session_state.resources:
-            with st.expander(f"{resource['uri']}", expanded=False):
-                st.write(f"**Name:** {resource['name']}")
-                st.write(f"**Description:** {resource['description']}")
-                st.write(f"**MIME Type:** {resource['mimeType']}")
+        st.markdown("**📚 Resources**")
+        for idx, resource in enumerate(st.session_state.resources):
+            with st.container():
+                st.markdown(f"""
+                <div class="item-card">
+                    <strong>{resource['name']}</strong><br>
+                    <small>{resource['uri']}</small><br>
+                    <small>{resource['mimeType']}</small>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("🗑️", key=f"del_resource_{idx}"):
+                    st.session_state.resources.pop(idx)
+                    st.rerun()
 
+with col_prompts:
     if st.session_state.prompts:
-        st.subheader("💬 Prompts")
-        for prompt in st.session_state.prompts:
-            with st.expander(f"{prompt['name']}", expanded=False):
-                st.write(f"**Description:** {prompt['description']}")
+        st.markdown("**💬 Prompts**")
+        for idx, prompt in enumerate(st.session_state.prompts):
+            with st.container():
+                st.markdown(f"""
+                <div class="item-card">
+                    <strong>{prompt['name']}</strong><br>
+                    <small>{prompt['description']}</small>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("🗑️", key=f"del_prompt_{idx}"):
+                    st.session_state.prompts.pop(idx)
+                    st.rerun()
 
-    st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("← Back", use_container_width=True):
-            prev_step()
-            st.rerun()
-    with col2:
-        if st.button("Generate Server 🚀", type="primary", use_container_width=True):
-            next_step()
-            st.rerun()
+# Generation section
+st.markdown("---")
+st.markdown('<div class="section-title">🚀 Generate MCP Server</div>', unsafe_allow_html=True)
 
-# Step 4: Generate
-elif st.session_state.step == 4:
-    st.header("🎉 Step 4: Generate & Download")
+col_gen1, col_gen2, col_gen3 = st.columns([1, 1, 1])
 
-    with st.spinner("Generating your MCP server..."):
-        try:
+with col_gen1:
+    generate_button = st.button("🤖 Generate with Claude AI", type="primary", use_container_width=True)
+
+with col_gen2:
+    if st.button("🔄 Reset All", use_container_width=True):
+        st.session_state.tools = []
+        st.session_state.resources = []
+        st.session_state.prompts = []
+        st.session_state.generated_code = None
+        st.session_state.generation_status = None
+        st.rerun()
+
+with col_gen3:
+    if st.session_state.generated_code:
+        zip_data = create_zip(st.session_state.generated_code, server_name or "my-server")
+        st.download_button(
+            label="⬇️ Download ZIP",
+            data=zip_data,
+            file_name=f"{server_name or 'my-server'}.zip",
+            mime="application/zip",
+            use_container_width=True
+        )
+
+# Handle generation
+if generate_button:
+    if not api_key:
+        st.error("❌ Please provide a Claude API key in the sidebar!")
+    elif not server_name or not description:
+        st.error("❌ Please fill in server name and description!")
+    else:
+        # Validate components
+        valid = True
+        if server_type == 'tool' and not st.session_state.tools:
+            st.error("❌ Please add at least one tool!")
+            valid = False
+        elif server_type == 'resource' and not st.session_state.resources:
+            st.error("❌ Please add at least one resource!")
+            valid = False
+        elif server_type == 'full' and (not st.session_state.tools or not st.session_state.resources):
+            st.error("❌ Full server needs at least one tool and one resource!")
+            valid = False
+
+        if valid:
             # Prepare configuration
             config = {
-                'name': st.session_state.config['name'],
-                'description': st.session_state.config['description'],
-                'type': st.session_state.config['type']
+                'name': server_name,
+                'description': description,
+                'type': server_type,
+                'tools': st.session_state.tools,
+                'resources': st.session_state.resources,
+                'prompts': st.session_state.prompts
             }
 
-            if st.session_state.tools:
-                config['tools'] = st.session_state.tools
-            if st.session_state.resources:
-                config['resources'] = st.session_state.resources
-            if st.session_state.prompts:
-                config['prompts'] = st.session_state.prompts
+            # Generate with Claude
+            with st.spinner("🤖 Claude is generating your MCP server..."):
+                code, error = generate_with_claude(config, api_key)
 
-            # Generate server
-            generator = MCPGenerator()
-            server_code = generator.generate_from_config(config)
-
-            # Create zip file
-            zip_data = create_zip(server_code, st.session_state.config['name'])
-
-            # Success message
-            st.success("✅ Server generated successfully!")
-
-            # Preview
-            with st.expander("📄 Preview Generated Code", expanded=False):
-                st.code(server_code, language="python")
-
-            # Download button
-            st.download_button(
-                label="⬇️ Download Server (ZIP)",
-                data=zip_data,
-                file_name=f"{st.session_state.config['name']}.zip",
-                mime="application/zip",
-                use_container_width=True
-            )
-
-            # Installation instructions
-            st.markdown("### 📦 Installation Instructions")
-            st.info(f"""
-1. Extract the downloaded ZIP file
-2. Navigate to the `{st.session_state.config['name']}` directory
-3. Install dependencies: `pip install -r requirements.txt`
-4. Run the server: `python server.py`
-5. Configure Claude Desktop (see README.md in the ZIP)
-            """)
-
-            st.markdown("---")
-
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("← Back to Review", use_container_width=True):
-                    prev_step()
-                    st.rerun()
-            with col2:
-                if st.button("🔄 Create Another Server", use_container_width=True):
-                    reset_wizard()
+                if error:
+                    st.error(f"❌ {error}")
+                    st.session_state.generation_status = "error"
+                else:
+                    st.session_state.generated_code = code
+                    st.session_state.generation_status = "success"
+                    st.success("✅ MCP Server generated successfully!")
                     st.rerun()
 
-        except Exception as e:
-            st.error(f"❌ Error generating server: {str(e)}")
-            if st.button("← Back"):
-                prev_step()
-                st.rerun()
-
-# Sidebar
-with st.sidebar:
-    st.header("ℹ️ About MCP Generator")
-    st.write("""
-    This tool helps you create custom Model Context Protocol (MCP) servers without writing code.
-
-    **Features:**
-    - 🛠️ Tool Servers
-    - 📚 Resource Servers
-    - 🎯 Full-Featured Servers
-    - 🎨 Step-by-step wizard
-    - 📦 Ready-to-use ZIP output
-    """)
-
+# Display generated code
+if st.session_state.generated_code:
     st.markdown("---")
-    st.write("**Current Configuration:**")
-    if st.session_state.config:
-        st.write(f"Name: `{st.session_state.config.get('name', 'N/A')}`")
-        st.write(f"Type: `{st.session_state.config.get('type', 'N/A')}`")
-    else:
-        st.write("Not configured yet")
+    st.markdown('<div class="section-title">✨ Generated MCP Server Code</div>', unsafe_allow_html=True)
 
-    st.markdown("---")
-    if st.button("🔄 Reset Wizard", use_container_width=True):
-        reset_wizard()
-        st.rerun()
+    # Code preview with tabs
+    tab1, tab2 = st.tabs(["📄 server.py", "📋 Preview"])
+
+    with tab1:
+        st.code(st.session_state.generated_code, language="python", line_numbers=True)
+
+    with tab2:
+        st.markdown("""
+        ### 📦 Your MCP Server is Ready!
+
+        **What's included:**
+        - ✅ Complete `server.py` with all components
+        - ✅ `requirements.txt` with dependencies
+        - ✅ `README.md` with installation instructions
+
+        **Next steps:**
+        1. Click "Download ZIP" above
+        2. Extract the ZIP file
+        3. Run `pip install -r requirements.txt`
+        4. Configure in Claude Desktop
+        5. Start using your MCP server!
+
+        **Configuration for Claude Desktop:**
+        """)
+
+        config_json = {
+            "mcpServers": {
+                server_name: {
+                    "command": "python",
+                    "args": [f"/absolute/path/to/{server_name}/server.py"]
+                }
+            }
+        }
+
+        st.code(json.dumps(config_json, indent=2), language="json")
+
+        st.info("""
+        **Config file locations:**
+        - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+        - **Windows**: `%APPDATA%\\Claude\\claude_desktop_config.json`
+        """)
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #666; padding: 2rem;">
+    Made with ❤️ using Claude AI | <a href="https://modelcontextprotocol.io" target="_blank">Learn about MCP</a>
+</div>
+""", unsafe_allow_html=True)

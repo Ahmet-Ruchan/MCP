@@ -1,14 +1,24 @@
-# 🚀 MCP Generator - Streamlit Sürümü (Kolay Kurulum)
+# 🤖 MCP Generator - AI-Powered Streamlit (Yeni Versiyon!)
 
-## Neden Streamlit Versiyonu?
+## 🌟 Yeni Özellikler
 
-FastAPI/Uvicorn ile port sorunları yaşıyorsanız, **Streamlit versiyonu çok daha kolay ve güvenilir çalışır!**
+### ✨ Claude AI Entegrasyonu
+- **Akıllı Kod Üretimi**: Artık Claude API ile profesyonel MCP sunucuları otomatik oluşturuluyor!
+- **Best Practices**: Claude, en iyi uygulamaları ve error handling'i otomatik ekliyor
+- **Production-Ready**: Oluşturulan kod direkt kullanıma hazır
+
+### 🎨 Yeni Modern Arayüz
+- **Tek sayfa**: Wizard yok, her şey aynı sayfada
+- **Kullanıcı dostu**: Daha temiz ve anlaşılır input alanları
+- **Pop-up yok**: Her şey site içinde, inline preview
+- **Real-time**: Anlık önizleme ve güncelleme
 
 ### ✅ Avantajlar:
+- **Claude AI ile akıllı üretim** - Şablon değil, gerçek AI! 🤖
 - **Tek komutla çalışır** - Port sorunları yok!
 - **Otomatik açılır** - Tarayıcı otomatik başlar
-- **Modern arayüz** - Güzel ve kullanıcı dostu
-- **Daha az bağımlılık** - Daha stabil
+- **Modern arayüz** - Çok daha güzel ve profesyonel
+- **Inline kod gösterimi** - Pop-up yok, her şey sayfada
 
 ---
 
@@ -17,13 +27,33 @@ FastAPI/Uvicorn ile port sorunları yaşıyorsanız, **Streamlit versiyonu çok 
 ### 1. Gerekli paketleri yükle
 
 ```bash
-pip install streamlit
+pip install streamlit anthropic
 ```
 
 Veya tüm bağımlılıkları yükle:
 
 ```bash
 pip install -r requirements.txt
+```
+
+### 2. Claude API Key Al
+
+Claude API kullanmak için bir API key'e ihtiyacın var:
+
+1. **https://console.anthropic.com** adresine git
+2. Hesap oluştur veya giriş yap
+3. API key oluştur
+4. Key'i kopyala (örn: `sk-ant-...`)
+
+**İki yöntemle kullanabilirsin:**
+
+**A) Sidebar'da gir** (Önerilen)
+- Uygulamayı aç
+- Sol sidebar'da API Key input alanına yapıştır
+
+**B) Environment variable olarak ayarla**
+```bash
+export ANTHROPIC_API_KEY="sk-ant-your-key-here"
 ```
 
 ---
@@ -84,15 +114,68 @@ streamlit run streamlit_app.py --server.port 8080
 
 ---
 
-## 🎯 Kullanım
+## 🎯 Kullanım (Yeni Tek Sayfa Arayüz!)
 
-1. **Script'i çalıştır** - Yukarıdaki yöntemlerden birini kullan
-2. **Tarayıcı açılır** - Otomatik olarak `http://localhost:8501` açılır
-3. **4 adımlı wizard'ı takip et:**
-   - **Adım 1:** Server adı, tip ve açıklama
-   - **Adım 2:** Tool, resource ve prompt ekle
-   - **Adım 3:** Ayarları gözden geçir
-   - **Adım 4:** Server'ı oluştur ve indir
+### Adım 1: Uygulamayı Başlat
+```bash
+./start_web.sh          # Mac/Linux
+start_web.bat           # Windows
+```
+
+Tarayıcın otomatik açılır: `http://localhost:8501`
+
+### Adım 2: Claude API Key'ini Gir
+
+Sol sidebar'da:
+- **Claude API Key** alanına key'ini yapıştır
+- Veya environment variable'dan otomatik alır
+
+### Adım 3: Server Bilgilerini Doldur (Tek Sayfada!)
+
+**📝 Basic Information** (Sol kolon):
+- **Server Name**: `my-calculator-server`
+- **Server Type**: `tool`, `resource`, veya `full` seç
+- **Description**: Ne yaptığını açıkla
+
+**🔧 Components** (Sağ kolon):
+- **➕ Add Tool**: Tool ekle (name, description, parameters)
+- **➕ Add Resource**: Resource ekle (URI, name, MIME type)
+- **➕ Add Prompt**: Prompt ekle (sadece full server için)
+
+### Adım 4: Componentleri Ekle
+
+**Tool Örneği:**
+```
+Name: calculate
+Description: Performs mathematical operations
+Parameters (her satır):
+  x:number:First number
+  y:number:Second number
+  operation:string:Operation to perform (+, -, *, /)
+```
+
+**Resource Örneği:**
+```
+URI: data://weather
+Name: Weather Data
+Description: Current weather information
+MIME Type: application/json
+```
+
+### Adım 5: Claude ile Oluştur! 🤖
+
+- Tüm bilgileri girdikten sonra
+- **🤖 Generate with Claude AI** butonuna bas
+- Claude akıllıca MCP server kodunu yazacak
+- **Production-ready** kod oluşturulacak!
+
+### Adım 6: Kodu İncele ve İndir
+
+Kod oluşturulunca:
+- **📄 server.py** sekmesinde tam kodu gör
+- **📋 Preview** sekmesinde kurulum talimatlarını gör
+- **⬇️ Download ZIP** ile indir
+- İçinde `server.py`, `requirements.txt`, `README.md` var!
 
 ---
 
