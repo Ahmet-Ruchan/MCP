@@ -1,27 +1,33 @@
-# MCP Generator
+# MCP Generator 🤖
 
 A **Model Context Protocol (MCP) server that generates other MCP servers**. This meta-MCP tool helps developers quickly scaffold new MCP servers with best practices and proper structure.
 
-## 🌟 NEW: Web Interface Available!
+## 🌟 NEW: AI-Powered Generation with Claude!
 
-Now with a **beautiful web interface** for creating MCP servers without writing any code! 🎉
+Now with **Claude AI integration** for intelligent, production-ready MCP server generation! 🎉
 
-![Web Interface](https://img.shields.io/badge/Web-Interface-brightgreen) ![Python](https://img.shields.io/badge/Python-3.10+-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-Modern-orange)
+**What's New:**
+- 🤖 **AI-Powered Code Generation**: Claude writes optimized, production-ready code
+- 🎨 **Modern Single-Page UI**: No wizards, no popups - everything inline
+- ⚡ **Smart & Fast**: Real-time preview and validation
+- 📦 **Instantly Ready**: Download and use immediately
+
+![AI Powered](https://img.shields.io/badge/AI-Powered-brightgreen) ![Python](https://img.shields.io/badge/Python-3.10+-blue) ![Claude](https://img.shields.io/badge/Claude-API-orange) ![Streamlit](https://img.shields.io/badge/Streamlit-Easy-red)
 
 ## What is MCP Generator?
 
-MCP Generator is a code generation tool that creates complete, production-ready MCP servers from simple configurations. Instead of manually writing boilerplate code, you describe what you want and MCP Generator creates the entire server structure for you.
+MCP Generator uses **Claude AI** to create complete, production-ready MCP servers from your specifications. Instead of using rigid templates, Claude intelligently writes custom code tailored to your needs with proper error handling, best practices, and documentation.
 
 ## Features
 
-- ✨ **Beautiful Web Interface**: Step-by-step wizard for easy server creation (NEW!)
+- 🤖 **AI-Powered Generation**: Claude API integration for intelligent code generation (NEW!)
+- 🎨 **Modern Single-Page UI**: Clean, intuitive interface - no wizards or popups (NEW!)
+- ⚡ **Inline Everything**: Real-time preview, validation, and downloads - all on one page (NEW!)
 - 🚀 **Multiple Server Types**: Generate tool-based, resource-based, or full-featured MCP servers
-- 📝 **Template-Based Generation**: Uses best practices and proven patterns
-- 📁 **Automatic File Structure**: Creates all necessary files (server.py, README.md, requirements.txt)
-- ✅ **Configuration Validation**: Validates your configuration before generation
-- 📚 **Example Configs**: Provides example configurations to get started quickly
-- 🤖 **AI Assistant Integration**: Works with Cursor, Claude Code, and other MCP-compatible tools
-- 🎨 **Modern UI**: Responsive design with smooth animations and Tailwind CSS
+- 📝 **Smart Code Generation**: Best practices, error handling, and documentation included automatically
+- 📁 **Complete Package**: server.py, requirements.txt, and README.md - ready to use
+- ✅ **Real-time Validation**: Instant feedback as you build
+- 🤖 **Dual Mode**: Use as web interface OR as MCP server with Claude Desktop
 
 ## Installation & Usage
 
@@ -29,6 +35,7 @@ MCP Generator is a code generation tool that creates complete, production-ready 
 
 - Python 3.10 or higher
 - pip package manager
+- **Claude API Key** (get it from [console.anthropic.com](https://console.anthropic.com))
 
 ### 🚀 Quick Start
 
@@ -36,13 +43,23 @@ Choose your preferred method:
 
 ---
 
-### Method 1: Web Interface (Easiest!) ⭐ RECOMMENDED
+### Method 1: AI-Powered Web Interface (Easiest!) ⭐ RECOMMENDED
 
-**Perfect for:** Everyone! No coding needed.
+**Perfect for:** Everyone! No coding needed. Claude AI does the work!
 
+**Step 1: Install dependencies**
 ```bash
 cd mcp-generator
+pip install streamlit anthropic
+```
 
+**Step 2: Get Claude API Key**
+- Visit [console.anthropic.com](https://console.anthropic.com)
+- Create account and generate API key
+- Copy the key (starts with `sk-ant-...`)
+
+**Step 3: Launch**
+```bash
 # Quick start - Interactive launcher
 ./start.sh          # Mac/Linux
 start.bat           # Windows
@@ -52,17 +69,24 @@ start.bat           # Windows
 start_web.bat       # Windows
 
 # OR manual launch
-pip install streamlit
 streamlit run streamlit_app.py
 ```
 
-**Features:**
-- ✅ Opens automatically in your browser at `http://localhost:8501`
-- ✅ No port conflicts - Streamlit handles it!
-- ✅ Beautiful step-by-step wizard
-- ✅ Download generated servers as ZIP
+**Step 4: Use the Interface**
+- Enter your Claude API key in the sidebar
+- Fill in server details (name, type, description)
+- Add tools/resources/prompts
+- Click "🤖 Generate with Claude AI"
+- Download your production-ready MCP server!
 
-👉 **See [STREAMLIT_GUIDE.md](STREAMLIT_GUIDE.md) for detailed guide**
+**Features:**
+- 🤖 **AI-Powered**: Claude generates intelligent, optimized code
+- 🎨 **Modern UI**: Single-page, no wizards, no popups
+- ⚡ **Inline Preview**: See your code immediately
+- ✅ **Production-Ready**: Best practices included automatically
+- 📦 **Complete Package**: server.py + requirements.txt + README.md
+
+👉 **See [STREAMLIT_GUIDE.md](STREAMLIT_GUIDE.md) for detailed guide with screenshots**
 
 ---
 
