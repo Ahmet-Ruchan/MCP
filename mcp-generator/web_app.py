@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """
-MCP Generator Web Application
-A user-friendly web interface for generating MCP servers
+MCP Generator Web Application - AI-Powered
+A modern web interface with Claude AI integration for intelligent MCP server generation
 """
 
 import asyncio
 import json
+import os
 import shutil
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from anthropic import Anthropic
 
 # Mock MCP imports for web usage
 class MockServer:
@@ -169,9 +171,227 @@ async def validate_config(config: Dict[str, Any]):
     })
 
 
+def generate_with_claude(config: dict, api_key: str) -> tuple[Optional[str], Optional[str]]:
+    """Generate MCP server code using Claude API"""
+    try:
+        client = Anthropic(api_key=api_key)
+
+        # Prepare the prompt
+        server_type = config['type']
+        name = config['name']
+        description = config['description']
+
+        tools_desc = ""
+        if config.get('tools'):
+            tools_desc = "\n\nTools to implement:\n"
+            for tool in config['tools']:
+                params = ", ".join([f"{p['name']} ({p['type']})" for p in tool.get('parameters', [])])
+                tools_desc += f"- {tool['name']}: {tool['description']}\n  Parameters: {params}\n"
+
+        resources_desc = ""
+        if config.get('resources'):
+            resources_desc = "\n\nResources to provide:\n"
+            for resource in config['resources']:
+                resources_desc += f"- {resource['uri']}: {resource['name']} - {resource['description']}\n"
+
+        prompts_desc = ""
+        if config.get('prompts'):
+            prompts_desc = "\n\nPrompts to include:\n"
+            for prompt in config['prompts']:
+                prompts_desc += f"- {prompt['name']}: {prompt['description']}\n"
+
+        prompt = f"""You are an expert MCP (Model Context Protocol) server developer. Generate a complete, production-ready MCP server in Python.
+
+**Server Specification:**
+- Name: {name}
+- Type: {server_type}
+- Description: {description}
+{tools_desc}{resources_desc}{prompts_desc}
+
+**Requirements:**
+1. Use the official `mcp` Python library (version 1.0.0+)
+2. Follow MCP protocol best practices
+3. Include proper error handling and validation
+4. Add detailed docstrings and comments
+5. Use type hints throughout
+6. Make it production-ready with proper logging
+7. Include helpful TODO comments for customization
+8. Use async/await properly for all handlers
+9. Follow Python PEP 8 style guidelines
+
+**Important Implementation Details:**
+- Use `from mcp.server import Server` and `from mcp.server.stdio import stdio_server`
+- Implement proper decorators: `@app.list_tools()`, `@app.call_tool()`, etc.
+- Return proper MCP types: `TextContent`, `Tool`, `Resource`, etc.
+- Include a `main()` async function with proper stdio_server setup
+- Add `if __name__ == "__main__": asyncio.run(main())`
+
+Generate ONLY the complete Python code for server.py. Do not include explanations, just the code.
+The code should be immediately runnable."""
+
+        # Call Claude API
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=4000,
+            temperature=0.3,
+            messages=[{
+                "role": "user",
+                "content": prompt
+            }]
+        )
+
+        # Extract code from response
+        code = message.content[0].text
+
+        # Clean up code if it has markdown formatting
+        if "```python" in code:
+            code = code.split("```python")[1].split("```")[0].strip()
+        elif "```" in code:
+            code = code.split("```")[1].split("```")[0].strip()
+
+        return code, None
+
+    except Exception as e:
+        return None, f"Error generating code: {str(e)}"
+
+
+@app.post("/api/generate-with-claude")
+async def generate_with_claude_api(request: Dict[str, Any]):
+    """Generate MCP server using Claude AI"""
+    try:
+        api_key = request.get("api_key")
+        name = request.get("name")
+        description = request.get("description")
+        server_type = request.get("server_type")
+        config = request.get("config", {})
+
+        # Validation
+        if not api_key:
+            raise HTTPException(status_code=400, detail="Claude API key is required")
+        if not name:
+            raise HTTPException(status_code=400, detail="Server name is required")
+        if not description:
+            raise HTTPException(status_code=400, detail="Description is required")
+        if not server_type:
+            raise HTTPException(status_code=400, detail="Server type is required")
+
+        # Prepare config for Claude
+        claude_config = {
+            'name': name,
+            'description': description,
+            'type': server_type,
+            'tools': config.get('tools', []),
+            'resources': config.get('resources', []),
+            'prompts': config.get('prompts', [])
+        }
+
+        # Generate with Claude
+        code, error = generate_with_claude(claude_config, api_key)
+
+        if error:
+            return JSONResponse({
+                "success": False,
+                "message": f"❌ {error}"
+            }, status_code=500)
+
+        # Create temporary directory
+        temp_dir = Path(tempfile.mkdtemp())
+        server_dir = temp_dir / name
+        server_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write server.py
+        (server_dir / "server.py").write_text(code)
+
+        # Write requirements.txt
+        requirements = "mcp>=1.0.0\nanthropic>=0.18.0\n"
+        (server_dir / "requirements.txt").write_text(requirements)
+
+        # Write README.md
+        readme = f"""# {name}
+
+Generated by MCP Generator with Claude AI 🤖
+
+## Installation
+
+```bash
+cd {name}
+pip install -r requirements.txt
+```
+
+## Usage
+
+### As MCP Server (with Claude Desktop)
+
+Add to your Claude Desktop config:
+
+```json
+{{
+  "mcpServers": {{
+    "{name}": {{
+      "command": "python",
+      "args": ["/absolute/path/to/{name}/server.py"]
+    }}
+  }}
+}}
+```
+
+### Configuration Files
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%\\Claude\\claude_desktop_config.json`
+
+## Testing
+
+Run the server directly:
+
+```bash
+python server.py
+```
+
+The server communicates via stdio protocol.
+
+---
+
+Generated with ❤️ by [MCP Generator](https://github.com/your-repo/mcp-generator)
+"""
+        (server_dir / "README.md").write_text(readme)
+
+        # Create zip file
+        zip_filename = f"{name}.zip"
+        zip_path = temp_dir / zip_filename
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for file_path in server_dir.rglob('*'):
+                if file_path.is_file():
+                    zipf.write(file_path, file_path.relative_to(temp_dir))
+
+        # Store for download
+        temp_files[zip_filename] = str(zip_path)
+
+        return JSONResponse({
+            "success": True,
+            "message": f"✅ Server '{name}' generated successfully with Claude AI!",
+            "filename": zip_filename,
+            "code": code,
+            "config_json": json.dumps({
+                "mcpServers": {
+                    name: {
+                        "command": "python",
+                        "args": [f"/absolute/path/to/{name}/server.py"]
+                    }
+                }
+            }, indent=2)
+        })
+
+    except Exception as e:
+        return JSONResponse({
+            "success": False,
+            "message": f"❌ Error: {str(e)}"
+        }, status_code=500)
+
+
 @app.post("/api/generate")
 async def generate_server(request: Dict[str, Any]):
-    """Generate MCP server files"""
+    """Generate MCP server files (template-based, legacy)"""
     try:
         name = request.get("name")
         description = request.get("description")

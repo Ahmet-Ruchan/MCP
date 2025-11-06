@@ -3,280 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCP Generator - Create MCP Servers Easily</title>
+    <title>MCP Generator - AI Powered</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .slide-in { animation: slideIn 0.3s ease-out; }
-
-        .step-indicator {
-            transition: all 0.3s ease;
-        }
-        .step-indicator.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transform: scale(1.1);
-        }
-        .step-indicator.completed {
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-        }
-
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
-        .input-field {
-            transition: all 0.3s ease;
+        .code-preview {
+            background: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .input-field:focus {
-            transform: scale(1.02);
+        .tab-active {
+            background: #667eea;
+            color: white;
         }
-
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+        .component-card {
+            transition: all 0.3s;
+        }
+        .component-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
         }
     </style>
 </head>
-<body class="font-sans">
+<body class="bg-gray-50">
     <!-- Header -->
-    <header class="gradient-bg text-white py-6 shadow-lg">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <i class="fas fa-magic text-4xl"></i>
-                    <div>
-                        <h1 class="text-3xl font-bold">MCP Generator</h1>
-                        <p class="text-sm opacity-90">Create MCP Servers in Minutes</p>
-                    </div>
-                </div>
-                <a href="https://github.com/Ahmet-Ruchan/MCP" target="_blank" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
-                    <i class="fab fa-github mr-2"></i>GitHub
-                </a>
-            </div>
-        </div>
-    </header>
+    <div class="gradient-bg text-white py-12 px-6 text-center rounded-b-2xl shadow-lg">
+        <h1 class="text-5xl font-bold mb-2">🤖 MCP Generator</h1>
+        <p class="text-xl opacity-95">AI-Powered MCP Server Generation with Claude</p>
+    </div>
 
-    <div class="container mx-auto px-4 py-8">
-        <!-- Progress Steps -->
-        <div class="mb-8 fade-in">
-            <div class="flex justify-between items-center max-w-4xl mx-auto">
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <div id="step1-indicator" class="step-indicator active w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                            1
-                        </div>
-                        <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
-                    </div>
-                    <p class="text-sm mt-2 font-semibold text-center">Basic Info</p>
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+
+        <!-- API Key Section -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="flex-1 w-full">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        🔑 Claude API Key
+                    </label>
+                    <input
+                        type="password"
+                        id="apiKey"
+                        placeholder="sk-ant-..."
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                    >
+                    <p class="text-sm text-gray-500 mt-2">
+                        Get your API key from <a href="https://console.anthropic.com" target="_blank" class="text-purple-600 hover:underline">console.anthropic.com</a>
+                    </p>
                 </div>
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <div id="step2-indicator" class="step-indicator w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-                            2
-                        </div>
-                        <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
-                    </div>
-                    <p class="text-sm mt-2 text-center">Configuration</p>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <div id="step3-indicator" class="step-indicator w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-                            3
-                        </div>
-                        <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
-                    </div>
-                    <p class="text-sm mt-2 text-center">Review</p>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <div id="step4-indicator" class="step-indicator w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-                            4
+                <div class="w-full md:w-auto">
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <p class="text-sm font-semibold text-gray-700 mb-2">📊 Components</p>
+                        <div class="flex gap-4 justify-center">
+                            <div>
+                                <p class="text-2xl font-bold text-purple-600" id="toolCount">0</p>
+                                <p class="text-xs text-gray-600">Tools</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-green-600" id="resourceCount">0</p>
+                                <p class="text-xs text-gray-600">Resources</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-orange-600" id="promptCount">0</p>
+                                <p class="text-xs text-gray-600">Prompts</p>
+                            </div>
                         </div>
                     </div>
-                    <p class="text-sm mt-2 text-center">Generate</p>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="max-w-4xl mx-auto">
-            <!-- Step 1: Basic Information -->
-            <div id="step1" class="bg-white rounded-2xl shadow-xl p-8 slide-in">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-info-circle mr-3 text-purple-600"></i>
-                    Step 1: Basic Information
-                </h2>
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-                <div class="space-y-6">
+            <!-- Left Column: Basic Information -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📝 Basic Information</h2>
+
+                <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            <i class="fas fa-server mr-2"></i>Server Name *
-                        </label>
-                        <input type="text" id="serverName"
-                               placeholder="e.g., weather-server, calculator-api"
-                               class="input-field w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none">
-                        <p class="text-xs text-gray-500 mt-1">Use lowercase with hyphens (e.g., my-awesome-server)</p>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Server Name</label>
+                        <input
+                            type="text"
+                            id="serverName"
+                            placeholder="my-awesome-server"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                        >
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            <i class="fas fa-align-left mr-2"></i>Description *
-                        </label>
-                        <textarea id="serverDescription" rows="3"
-                                  placeholder="Describe what your MCP server does..."
-                                  class="input-field w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"></textarea>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Server Type</label>
+                        <select
+                            id="serverType"
+                            onchange="updateServerType()"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                        >
+                            <option value="tool">🛠️ Tool - Functions Claude can call</option>
+                            <option value="resource">📚 Resource - Data Claude can read</option>
+                            <option value="full">🎯 Full - Tools + Resources + Prompts</option>
+                        </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            <i class="fas fa-layer-group mr-2"></i>Server Type *
-                        </label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div onclick="selectServerType('tool')"
-                                 class="server-type-card card-hover cursor-pointer p-6 border-2 border-gray-300 rounded-xl text-center transition">
-                                <i class="fas fa-tools text-4xl text-blue-500 mb-3"></i>
-                                <h3 class="font-bold text-lg">Tool Server</h3>
-                                <p class="text-sm text-gray-600 mt-2">For APIs, calculations, and functions</p>
-                            </div>
-                            <div onclick="selectServerType('resource')"
-                                 class="server-type-card card-hover cursor-pointer p-6 border-2 border-gray-300 rounded-xl text-center transition">
-                                <i class="fas fa-database text-4xl text-green-500 mb-3"></i>
-                                <h3 class="font-bold text-lg">Resource Server</h3>
-                                <p class="text-sm text-gray-600 mt-2">For data access and resources</p>
-                            </div>
-                            <div onclick="selectServerType('full')"
-                                 class="server-type-card card-hover cursor-pointer p-6 border-2 border-gray-300 rounded-xl text-center transition">
-                                <i class="fas fa-rocket text-4xl text-purple-500 mb-3"></i>
-                                <h3 class="font-bold text-lg">Full Server</h3>
-                                <p class="text-sm text-gray-600 mt-2">Tools, resources, and prompts</p>
-                            </div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                        <textarea
+                            id="description"
+                            rows="4"
+                            placeholder="Describe what your MCP server does..."
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                        ></textarea>
+                    </div>
+
+                    <div id="typeInfo" class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
+                        <p class="text-sm text-gray-700">🛠️ <strong>Tool Server:</strong> Provides executable functions that Claude can call to perform actions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Components -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">🔧 Components</h2>
+
+                <!-- Tool Input -->
+                <div id="toolSection" class="mb-4">
+                    <details class="group">
+                        <summary class="cursor-pointer bg-purple-50 hover:bg-purple-100 px-4 py-3 rounded-lg font-semibold text-purple-700 transition">
+                            ➕ Add Tool
+                        </summary>
+                        <div class="mt-4 space-y-3 p-4 border-2 border-gray-200 rounded-lg">
+                            <input type="text" id="toolName" placeholder="Tool name (e.g., calculate)" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none">
+                            <input type="text" id="toolDesc" placeholder="Description" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none">
+                            <textarea id="toolParams" rows="3" placeholder="Parameters (one per line: name:type:description)&#10;x:number:First number&#10;y:number:Second number" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"></textarea>
+                            <button onclick="addTool()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                                Add Tool
+                            </button>
                         </div>
-                        <input type="hidden" id="serverType">
-                    </div>
+                    </details>
                 </div>
 
-                <div class="mt-8 flex justify-end">
-                    <button onclick="nextStep(2)"
-                            class="gradient-bg text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition">
-                        Next Step <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 2: Configuration -->
-            <div id="step2" class="bg-white rounded-2xl shadow-xl p-8 hidden">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-cog mr-3 text-purple-600"></i>
-                    Step 2: Configuration
-                </h2>
-
-                <div id="configContent" class="space-y-6">
-                    <!-- Dynamic content based on server type -->
-                </div>
-
-                <div class="mt-8 flex justify-between">
-                    <button onclick="previousStep(1)"
-                            class="bg-gray-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-600 transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Previous
-                    </button>
-                    <button onclick="nextStep(3)"
-                            class="gradient-bg text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition">
-                        Next Step <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 3: Review -->
-            <div id="step3" class="bg-white rounded-2xl shadow-xl p-8 hidden">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-eye mr-3 text-purple-600"></i>
-                    Step 3: Review Configuration
-                </h2>
-
-                <div id="reviewContent" class="bg-gray-50 rounded-lg p-6">
-                    <!-- Review content will be populated here -->
+                <!-- Resource Input -->
+                <div id="resourceSection" class="mb-4 hidden">
+                    <details class="group">
+                        <summary class="cursor-pointer bg-green-50 hover:bg-green-100 px-4 py-3 rounded-lg font-semibold text-green-700 transition">
+                            ➕ Add Resource
+                        </summary>
+                        <div class="mt-4 space-y-3 p-4 border-2 border-gray-200 rounded-lg">
+                            <input type="text" id="resourceUri" placeholder="URI (e.g., data://mydata)" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                            <input type="text" id="resourceName" placeholder="Name" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                            <input type="text" id="resourceDesc" placeholder="Description" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                            <select id="resourceMime" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                <option value="text/plain">text/plain</option>
+                                <option value="application/json">application/json</option>
+                                <option value="text/html">text/html</option>
+                            </select>
+                            <button onclick="addResource()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                                Add Resource
+                            </button>
+                        </div>
+                    </details>
                 </div>
 
-                <div class="mt-8 flex justify-between">
-                    <button onclick="previousStep(2)"
-                            class="bg-gray-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-600 transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Previous
-                    </button>
-                    <button onclick="nextStep(4)"
-                            class="gradient-bg text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition">
-                        Continue <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 4: Generate -->
-            <div id="step4" class="bg-white rounded-2xl shadow-xl p-8 hidden">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-magic mr-3 text-purple-600"></i>
-                    Step 4: Generate Your MCP Server
-                </h2>
-
-                <div id="generateContent" class="text-center py-12">
-                    <i class="fas fa-rocket text-6xl text-purple-500 mb-6"></i>
-                    <h3 class="text-2xl font-bold mb-4">Ready to Generate!</h3>
-                    <p class="text-gray-600 mb-8">Click the button below to generate your MCP server files.</p>
-
-                    <button onclick="generateServer()" id="generateBtn"
-                            class="gradient-bg text-white px-12 py-4 rounded-lg font-bold text-lg hover:shadow-xl transform hover:scale-105 transition">
-                        <i class="fas fa-magic mr-2"></i>Generate Server
-                    </button>
-                </div>
-
-                <div id="successContent" class="hidden text-center py-12">
-                    <i class="fas fa-check-circle text-6xl text-green-500 mb-6"></i>
-                    <h3 class="text-2xl font-bold mb-4 text-green-600">Success!</h3>
-                    <p class="text-gray-600 mb-8" id="successMessage"></p>
-
-                    <div class="space-y-4">
-                        <button onclick="downloadServer()" id="downloadBtn"
-                                class="bg-green-500 text-white px-12 py-4 rounded-lg font-bold text-lg hover:bg-green-600 transition block mx-auto">
-                            <i class="fas fa-download mr-2"></i>Download Server Files
-                        </button>
-
-                        <button onclick="resetWizard()"
-                                class="bg-gray-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-600 transition block mx-auto">
-                            <i class="fas fa-redo mr-2"></i>Create Another Server
-                        </button>
-                    </div>
-                </div>
-
-                <div class="mt-8 flex justify-between">
-                    <button onclick="previousStep(3)" id="backBtn"
-                            class="bg-gray-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-600 transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Previous
-                    </button>
+                <!-- Prompt Input -->
+                <div id="promptSection" class="mb-4 hidden">
+                    <details class="group">
+                        <summary class="cursor-pointer bg-orange-50 hover:bg-orange-100 px-4 py-3 rounded-lg font-semibold text-orange-700 transition">
+                            ➕ Add Prompt
+                        </summary>
+                        <div class="mt-4 space-y-3 p-4 border-2 border-gray-200 rounded-lg">
+                            <input type="text" id="promptName" placeholder="Prompt name (e.g., analyze)" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none">
+                            <input type="text" id="promptDesc" placeholder="Description" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none">
+                            <button onclick="addPrompt()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                                Add Prompt
+                            </button>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>
+
+        <!-- Components Display -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+                <h3 class="font-bold text-purple-700 mb-2">🛠️ Tools</h3>
+                <div id="toolsList" class="space-y-2"></div>
+            </div>
+            <div>
+                <h3 class="font-bold text-green-700 mb-2">📚 Resources</h3>
+                <div id="resourcesList" class="space-y-2"></div>
+            </div>
+            <div>
+                <h3 class="font-bold text-orange-700 mb-2">💬 Prompts</h3>
+                <div id="promptsList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="generateWithClaude()" class="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 transition">
+                    🤖 Generate with Claude AI
+                </button>
+                <button onclick="resetAll()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 transition">
+                    🔄 Reset All
+                </button>
+                <button id="downloadBtn" onclick="downloadZip()" disabled class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition">
+                    ⬇️ Download ZIP
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="hidden mb-6"></div>
+
+        <!-- Generated Code Preview -->
+        <div id="codePreview" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">✨ Generated MCP Server Code</h2>
+
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-4">
+                <button onclick="showTab('code')" id="codeTab" class="tab-active px-6 py-2 rounded-lg font-semibold transition">
+                    📄 server.py
+                </button>
+                <button onclick="showTab('instructions')" id="instructionsTab" class="bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">
+                    📋 Setup Instructions
+                </button>
+            </div>
+
+            <!-- Code Tab -->
+            <div id="codeContent" class="code-preview p-6 max-h-96 overflow-auto">
+                <pre><code id="generatedCode" class="text-sm text-green-400 font-mono whitespace-pre-wrap"></code></pre>
+            </div>
+
+            <!-- Instructions Tab -->
+            <div id="instructionsContent" class="hidden space-y-4">
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                    <h3 class="font-bold text-green-800 mb-2">✅ Your MCP Server is Ready!</h3>
+                    <p class="text-gray-700"><strong>Included files:</strong> server.py, requirements.txt, README.md</p>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="font-bold text-gray-800">📦 Installation Steps:</h3>
+                    <ol class="list-decimal list-inside space-y-1 text-gray-700 ml-4">
+                        <li>Download the ZIP file using the button above</li>
+                        <li>Extract the ZIP file</li>
+                        <li>Run: <code class="bg-gray-100 px-2 py-1 rounded">pip install -r requirements.txt</code></li>
+                        <li>Configure in Claude Desktop (see below)</li>
+                        <li>Start using your MCP server!</li>
+                    </ol>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="font-bold text-gray-800">⚙️ Claude Desktop Configuration:</h3>
+                    <pre id="configJson" class="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm"></pre>
+                    <p class="text-sm text-gray-600">
+                        <strong>Config file locations:</strong><br>
+                        • macOS: <code class="bg-gray-100 px-2 py-1 rounded">~/Library/Application Support/Claude/claude_desktop_config.json</code><br>
+                        • Windows: <code class="bg-gray-100 px-2 py-1 rounded">%APPDATA%\Claude\claude_desktop_config.json</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Footer -->
-    <footer class="mt-16 py-6 text-center text-gray-600">
-        <p>Made with <i class="fas fa-heart text-red-500"></i> by <a href="https://github.com/Ahmet-Ruchan" class="text-purple-600 hover:underline">Ahmet Ruçhan Avcı</a></p>
-    </footer>
+    <div class="text-center py-8 text-gray-600">
+        Made with ❤️ using Claude AI | <a href="https://modelcontextprotocol.io" target="_blank" class="text-purple-600 hover:underline">Learn about MCP</a>
+    </div>
 
     <script src="/static/js/app.js"></script>
 </body>

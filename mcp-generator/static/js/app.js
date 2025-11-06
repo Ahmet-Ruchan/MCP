@@ -1,529 +1,421 @@
-// Global state
-let currentStep = 1;
-let serverConfig = {
-    name: '',
-    description: '',
-    server_type: '',
-    config: {
-        tools: [],
-        resources: [],
-        prompts: []
+// MCP Generator - AI-Powered Web Interface
+// State management
+let tools = [];
+let resources = [];
+let prompts = [];
+let generatedFilename = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    updateServerType();
+    updateCounts();
+});
+
+// Server type information
+const serverTypeInfo = {
+    tool: {
+        icon: '🛠️',
+        title: 'Tool Server',
+        desc: 'Provides executable functions that Claude can call to perform actions'
+    },
+    resource: {
+        icon: '📚',
+        title: 'Resource Server',
+        desc: 'Provides data and content that Claude can read and use'
+    },
+    full: {
+        icon: '🎯',
+        title: 'Full-Featured Server',
+        desc: 'Combines tools, resources, and prompts for complete functionality'
     }
 };
-let generatedFilename = '';
 
-// Server type selection
-function selectServerType(type) {
-    serverConfig.server_type = type;
-    document.getElementById('serverType').value = type;
+// Update server type UI
+function updateServerType() {
+    const serverType = document.getElementById('serverType').value;
+    const info = serverTypeInfo[serverType];
 
-    // Update visual selection
-    document.querySelectorAll('.server-type-card').forEach(card => {
-        card.classList.remove('border-purple-500', 'bg-purple-50');
-        card.classList.add('border-gray-300');
-    });
-
-    event.target.closest('.server-type-card').classList.add('border-purple-500', 'bg-purple-50');
-    event.target.closest('.server-type-card').classList.remove('border-gray-300');
-}
-
-// Step navigation
-function nextStep(step) {
-    // Validate current step
-    if (!validateStep(currentStep)) {
-        return;
-    }
-
-    // Save current step data
-    saveStepData(currentStep);
-
-    // Hide current step
-    document.getElementById(`step${currentStep}`).classList.add('hidden');
-
-    // Show next step
-    document.getElementById(`step${step}`).classList.remove('hidden');
-    document.getElementById(`step${step}`).classList.add('slide-in');
-
-    // Update progress indicators
-    document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
-    document.getElementById(`step${currentStep}-indicator`).classList.add('completed');
-    document.getElementById(`step${step}-indicator`).classList.add('active');
-
-    // Load step content
-    if (step === 2) {
-        loadConfigForm();
-    } else if (step === 3) {
-        loadReview();
-    }
-
-    currentStep = step;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function previousStep(step) {
-    // Hide current step
-    document.getElementById(`step${currentStep}`).classList.add('hidden');
-
-    // Show previous step
-    document.getElementById(`step${step}`).classList.remove('hidden');
-
-    // Update progress indicators
-    document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
-    document.getElementById(`step${step}-indicator`).classList.remove('completed');
-    document.getElementById(`step${step}-indicator`).classList.add('active');
-
-    currentStep = step;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Validation
-function validateStep(step) {
-    if (step === 1) {
-        const name = document.getElementById('serverName').value.trim();
-        const description = document.getElementById('serverDescription').value.trim();
-        const type = document.getElementById('serverType').value;
-
-        if (!name) {
-            alert('⚠️ Please enter a server name');
-            return false;
-        }
-
-        if (!/^[a-z0-9-]+$/.test(name)) {
-            alert('⚠️ Server name must be lowercase with hyphens only (e.g., my-server)');
-            return false;
-        }
-
-        if (!description) {
-            alert('⚠️ Please enter a description');
-            return false;
-        }
-
-        if (!type) {
-            alert('⚠️ Please select a server type');
-            return false;
-        }
-
-        return true;
-    }
-
-    if (step === 2) {
-        const type = serverConfig.server_type;
-
-        if (type === 'tool' || type === 'full') {
-            if (serverConfig.config.tools.length === 0) {
-                alert('⚠️ Please add at least one tool');
-                return false;
-            }
-        }
-
-        if (type === 'resource' || type === 'full') {
-            if (serverConfig.config.resources.length === 0) {
-                alert('⚠️ Please add at least one resource');
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    return true;
-}
-
-// Save step data
-function saveStepData(step) {
-    if (step === 1) {
-        serverConfig.name = document.getElementById('serverName').value.trim();
-        serverConfig.description = document.getElementById('serverDescription').value.trim();
-        serverConfig.server_type = document.getElementById('serverType').value;
-    }
-}
-
-// Load configuration form based on server type
-function loadConfigForm() {
-    const type = serverConfig.server_type;
-    const container = document.getElementById('configContent');
-
-    let html = '';
-
-    if (type === 'tool' || type === 'full') {
-        html += generateToolsSection();
-    }
-
-    if (type === 'resource' || type === 'full') {
-        html += generateResourcesSection();
-    }
-
-    if (type === 'full') {
-        html += generatePromptsSection();
-    }
-
-    container.innerHTML = html;
-}
-
-// Generate Tools Section
-function generateToolsSection() {
-    return `
-        <div class="border-2 border-purple-200 rounded-lg p-6 bg-purple-50">
-            <h3 class="text-xl font-bold mb-4 text-purple-800">
-                <i class="fas fa-tools mr-2"></i>Tools Configuration
-            </h3>
-            <p class="text-sm text-gray-600 mb-4">Tools are functions that your MCP server can execute.</p>
-
-            <div id="toolsList" class="space-y-4 mb-4">
-                ${serverConfig.config.tools.map((tool, index) => renderTool(tool, index)).join('')}
-            </div>
-
-            <button onclick="addTool()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">
-                <i class="fas fa-plus mr-2"></i>Add Tool
-            </button>
-        </div>
+    // Update info box
+    document.getElementById('typeInfo').innerHTML = `
+        <p class="text-sm text-gray-700">${info.icon} <strong>${info.title}:</strong> ${info.desc}</p>
     `;
-}
 
-// Generate Resources Section
-function generateResourcesSection() {
-    return `
-        <div class="border-2 border-green-200 rounded-lg p-6 bg-green-50 mt-6">
-            <h3 class="text-xl font-bold mb-4 text-green-800">
-                <i class="fas fa-database mr-2"></i>Resources Configuration
-            </h3>
-            <p class="text-sm text-gray-600 mb-4">Resources are data sources your MCP server can provide.</p>
+    // Show/hide sections
+    const toolSection = document.getElementById('toolSection');
+    const resourceSection = document.getElementById('resourceSection');
+    const promptSection = document.getElementById('promptSection');
 
-            <div id="resourcesList" class="space-y-4 mb-4">
-                ${serverConfig.config.resources.map((resource, index) => renderResource(resource, index)).join('')}
-            </div>
-
-            <button onclick="addResource()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
-                <i class="fas fa-plus mr-2"></i>Add Resource
-            </button>
-        </div>
-    `;
-}
-
-// Generate Prompts Section
-function generatePromptsSection() {
-    return `
-        <div class="border-2 border-blue-200 rounded-lg p-6 bg-blue-50 mt-6">
-            <h3 class="text-xl font-bold mb-4 text-blue-800">
-                <i class="fas fa-comment-dots mr-2"></i>Prompts Configuration
-            </h3>
-            <p class="text-sm text-gray-600 mb-4">Prompts are pre-defined templates for AI interactions.</p>
-
-            <div id="promptsList" class="space-y-4 mb-4">
-                ${serverConfig.config.prompts.map((prompt, index) => renderPrompt(prompt, index)).join('')}
-            </div>
-
-            <button onclick="addPrompt()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-                <i class="fas fa-plus mr-2"></i>Add Prompt
-            </button>
-        </div>
-    `;
-}
-
-// Render Tool
-function renderTool(tool, index) {
-    return `
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-            <div class="flex justify-between items-start mb-3">
-                <h4 class="font-bold text-lg">${tool.name || 'New Tool'}</h4>
-                <button onclick="removeTool(${index})" class="text-red-500 hover:text-red-700">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-            <p class="text-sm text-gray-600 mb-2">${tool.description || 'No description'}</p>
-            <p class="text-xs text-gray-500">${tool.parameters.length} parameter(s)</p>
-        </div>
-    `;
-}
-
-// Render Resource
-function renderResource(resource, index) {
-    return `
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-            <div class="flex justify-between items-start mb-3">
-                <h4 class="font-bold text-lg">${resource.name || 'New Resource'}</h4>
-                <button onclick="removeResource(${index})" class="text-red-500 hover:text-red-700">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-            <p class="text-sm text-gray-600 mb-2">${resource.uri || 'No URI'}</p>
-            <p class="text-xs text-gray-500">${resource.description || 'No description'}</p>
-        </div>
-    `;
-}
-
-// Render Prompt
-function renderPrompt(prompt, index) {
-    return `
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-            <div class="flex justify-between items-start mb-3">
-                <h4 class="font-bold text-lg">${prompt.name || 'New Prompt'}</h4>
-                <button onclick="removePrompt(${index})" class="text-red-500 hover:text-red-700">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-            <p class="text-sm text-gray-600">${prompt.description || 'No description'}</p>
-        </div>
-    `;
+    if (serverType === 'tool') {
+        toolSection.classList.remove('hidden');
+        resourceSection.classList.add('hidden');
+        promptSection.classList.add('hidden');
+    } else if (serverType === 'resource') {
+        toolSection.classList.add('hidden');
+        resourceSection.classList.remove('hidden');
+        promptSection.classList.add('hidden');
+    } else if (serverType === 'full') {
+        toolSection.classList.remove('hidden');
+        resourceSection.classList.remove('hidden');
+        promptSection.classList.remove('hidden');
+    }
 }
 
 // Add Tool
 function addTool() {
-    const name = prompt('Enter tool name (e.g., calculate, search):');
-    if (!name) return;
+    const name = document.getElementById('toolName').value.trim();
+    const desc = document.getElementById('toolDesc').value.trim();
+    const paramsText = document.getElementById('toolParams').value.trim();
 
-    const description = prompt('Enter tool description:');
-    if (!description) return;
+    if (!name || !desc) {
+        showError('Please fill in tool name and description');
+        return;
+    }
 
-    const tool = {
-        name: name,
-        description: description,
-        parameters: []
-    };
-
-    // Add parameters
-    while (true) {
-        const addParam = confirm('Add a parameter?');
-        if (!addParam) break;
-
-        const paramName = prompt('Parameter name:');
-        if (!paramName) break;
-
-        const paramType = prompt('Parameter type (string, number, boolean, object, array):', 'string');
-        const paramDesc = prompt('Parameter description:');
-        const paramRequired = confirm('Is this parameter required?');
-
-        tool.parameters.push({
-            name: paramName,
-            type: paramType || 'string',
-            description: paramDesc || '',
-            required: paramRequired
+    // Parse parameters
+    const parameters = [];
+    if (paramsText) {
+        paramsText.split('\n').forEach(line => {
+            if (line.trim() && line.includes(':')) {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    parameters.push({
+                        name: parts[0].trim(),
+                        type: parts[1].trim(),
+                        description: parts[2] ? parts[2].trim() : '',
+                        required: true
+                    });
+                }
+            }
         });
     }
 
-    serverConfig.config.tools.push(tool);
-    loadConfigForm();
-}
+    tools.push({ name, description: desc, parameters });
 
-// Remove Tool
-function removeTool(index) {
-    if (confirm('Are you sure you want to remove this tool?')) {
-        serverConfig.config.tools.splice(index, 1);
-        loadConfigForm();
-    }
+    // Clear inputs
+    document.getElementById('toolName').value = '';
+    document.getElementById('toolDesc').value = '';
+    document.getElementById('toolParams').value = '';
+
+    renderComponents();
+    updateCounts();
+    showSuccess(`✅ Added tool: ${name}`);
 }
 
 // Add Resource
 function addResource() {
-    const uri = prompt('Enter resource URI (e.g., data://users, file://docs):');
-    if (!uri) return;
+    const uri = document.getElementById('resourceUri').value.trim();
+    const name = document.getElementById('resourceName').value.trim();
+    const desc = document.getElementById('resourceDesc').value.trim();
+    const mimeType = document.getElementById('resourceMime').value;
 
-    const name = prompt('Enter resource name:');
-    if (!name) return;
-
-    const description = prompt('Enter resource description:');
-    const type = prompt('Resource type (text or json):', 'json');
-
-    serverConfig.config.resources.push({
-        uri: uri,
-        name: name,
-        description: description || '',
-        type: type || 'json'
-    });
-
-    loadConfigForm();
-}
-
-// Remove Resource
-function removeResource(index) {
-    if (confirm('Are you sure you want to remove this resource?')) {
-        serverConfig.config.resources.splice(index, 1);
-        loadConfigForm();
+    if (!uri || !name) {
+        showError('Please fill in resource URI and name');
+        return;
     }
+
+    resources.push({ uri, name, description: desc, mimeType });
+
+    // Clear inputs
+    document.getElementById('resourceUri').value = '';
+    document.getElementById('resourceName').value = '';
+    document.getElementById('resourceDesc').value = '';
+
+    renderComponents();
+    updateCounts();
+    showSuccess(`✅ Added resource: ${name}`);
 }
 
 // Add Prompt
 function addPrompt() {
-    const name = prompt('Enter prompt name:');
-    if (!name) return;
+    const name = document.getElementById('promptName').value.trim();
+    const desc = document.getElementById('promptDesc').value.trim();
 
-    const description = prompt('Enter prompt description:');
-    if (!description) return;
+    if (!name || !desc) {
+        showError('Please fill in prompt name and description');
+        return;
+    }
 
-    serverConfig.config.prompts.push({
-        name: name,
-        description: description
-    });
+    prompts.push({ name, description: desc });
 
-    loadConfigForm();
+    // Clear inputs
+    document.getElementById('promptName').value = '';
+    document.getElementById('promptDesc').value = '';
+
+    renderComponents();
+    updateCounts();
+    showSuccess(`✅ Added prompt: ${name}`);
 }
 
-// Remove Prompt
+// Remove components
+function removeTool(index) {
+    tools.splice(index, 1);
+    renderComponents();
+    updateCounts();
+}
+
+function removeResource(index) {
+    resources.splice(index, 1);
+    renderComponents();
+    updateCounts();
+}
+
 function removePrompt(index) {
-    if (confirm('Are you sure you want to remove this prompt?')) {
-        serverConfig.config.prompts.splice(index, 1);
-        loadConfigForm();
-    }
+    prompts.splice(index, 1);
+    renderComponents();
+    updateCounts();
 }
 
-// Load Review
-function loadReview() {
-    const container = document.getElementById('reviewContent');
-
-    let html = `
-        <h3 class="text-xl font-bold mb-4">📋 Configuration Summary</h3>
-
-        <div class="space-y-4">
-            <div class="bg-white p-4 rounded-lg">
-                <p class="font-semibold text-gray-700">Server Name:</p>
-                <p class="text-lg">${serverConfig.name}</p>
+// Render components
+function renderComponents() {
+    // Render tools
+    const toolsList = document.getElementById('toolsList');
+    toolsList.innerHTML = tools.map((tool, index) => `
+        <div class="component-card bg-white border-2 border-purple-200 rounded-lg p-3 hover:shadow-md">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <p class="font-semibold text-purple-700">${tool.name}</p>
+                    <p class="text-sm text-gray-600">${tool.description}</p>
+                    <p class="text-xs text-gray-500 mt-1">Params: ${tool.parameters.length}</p>
+                </div>
+                <button onclick="removeTool(${index})" class="text-red-600 hover:text-red-800 font-bold ml-2">
+                    🗑️
+                </button>
             </div>
-
-            <div class="bg-white p-4 rounded-lg">
-                <p class="font-semibold text-gray-700">Description:</p>
-                <p class="text-lg">${serverConfig.description}</p>
-            </div>
-
-            <div class="bg-white p-4 rounded-lg">
-                <p class="font-semibold text-gray-700">Server Type:</p>
-                <p class="text-lg capitalize">${serverConfig.server_type}</p>
-            </div>
-    `;
-
-    if (serverConfig.config.tools.length > 0) {
-        html += `
-            <div class="bg-white p-4 rounded-lg">
-                <p class="font-semibold text-gray-700 mb-2">Tools (${serverConfig.config.tools.length}):</p>
-                <ul class="list-disc list-inside space-y-1">
-                    ${serverConfig.config.tools.map(t => `<li>${t.name} - ${t.description}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
-
-    if (serverConfig.config.resources.length > 0) {
-        html += `
-            <div class="bg-white p-4 rounded-lg">
-                <p class="font-semibold text-gray-700 mb-2">Resources (${serverConfig.config.resources.length}):</p>
-                <ul class="list-disc list-inside space-y-1">
-                    ${serverConfig.config.resources.map(r => `<li>${r.name} (${r.uri})</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
-
-    if (serverConfig.config.prompts.length > 0) {
-        html += `
-            <div class="bg-white p-4 rounded-lg">
-                <p class="font-semibold text-gray-700 mb-2">Prompts (${serverConfig.config.prompts.length}):</p>
-                <ul class="list-disc list-inside space-y-1">
-                    ${serverConfig.config.prompts.map(p => `<li>${p.name} - ${p.description}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
-
-    html += `
         </div>
+    `).join('');
 
-        <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-            <p class="text-sm text-blue-800">
-                <i class="fas fa-info-circle mr-2"></i>
-                Review your configuration carefully. You can go back to make changes or continue to generate your server.
-            </p>
+    // Render resources
+    const resourcesList = document.getElementById('resourcesList');
+    resourcesList.innerHTML = resources.map((resource, index) => `
+        <div class="component-card bg-white border-2 border-green-200 rounded-lg p-3 hover:shadow-md">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <p class="font-semibold text-green-700">${resource.name}</p>
+                    <p class="text-sm text-gray-600">${resource.uri}</p>
+                    <p class="text-xs text-gray-500 mt-1">${resource.mimeType}</p>
+                </div>
+                <button onclick="removeResource(${index})" class="text-red-600 hover:text-red-800 font-bold ml-2">
+                    🗑️
+                </button>
+            </div>
         </div>
-    `;
+    `).join('');
 
-    container.innerHTML = html;
+    // Render prompts
+    const promptsList = document.getElementById('promptsList');
+    promptsList.innerHTML = prompts.map((prompt, index) => `
+        <div class="component-card bg-white border-2 border-orange-200 rounded-lg p-3 hover:shadow-md">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <p class="font-semibold text-orange-700">${prompt.name}</p>
+                    <p class="text-sm text-gray-600">${prompt.description}</p>
+                </div>
+                <button onclick="removePrompt(${index})" class="text-red-600 hover:text-red-800 font-bold ml-2">
+                    🗑️
+                </button>
+            </div>
+        </div>
+    `).join('');
 }
 
-// Generate Server
-async function generateServer() {
-    const btn = document.getElementById('generateBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+// Update counts
+function updateCounts() {
+    document.getElementById('toolCount').textContent = tools.length;
+    document.getElementById('resourceCount').textContent = resources.length;
+    document.getElementById('promptCount').textContent = prompts.length;
+}
+
+// Generate with Claude AI
+async function generateWithClaude() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const serverName = document.getElementById('serverName').value.trim();
+    const serverType = document.getElementById('serverType').value;
+    const description = document.getElementById('description').value.trim();
+
+    // Validation
+    if (!apiKey) {
+        showError('❌ Please enter your Claude API key!');
+        return;
+    }
+
+    if (!serverName || !description) {
+        showError('❌ Please fill in server name and description!');
+        return;
+    }
+
+    // Validate components based on server type
+    if (serverType === 'tool' && tools.length === 0) {
+        showError('❌ Please add at least one tool!');
+        return;
+    }
+
+    if (serverType === 'resource' && resources.length === 0) {
+        showError('❌ Please add at least one resource!');
+        return;
+    }
+
+    if (serverType === 'full' && (tools.length === 0 || resources.length === 0)) {
+        showError('❌ Full server needs at least one tool and one resource!');
+        return;
+    }
+
+    // Show loading
+    showLoading('🤖 Claude is generating your MCP server...');
 
     try {
-        const response = await fetch('/api/generate-and-prepare', {
+        const response = await fetch('/api/generate-with-claude', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(serverConfig)
+            body: JSON.stringify({
+                api_key: apiKey,
+                name: serverName,
+                description: description,
+                server_type: serverType,
+                config: {
+                    tools: tools,
+                    resources: resources,
+                    prompts: prompts
+                }
+            })
         });
 
-        const result = await response.json();
+        const data = await response.json();
 
-        if (result.success) {
-            generatedFilename = result.filename;
+        if (data.success) {
+            generatedFilename = data.filename;
 
-            document.getElementById('generateContent').classList.add('hidden');
-            document.getElementById('successContent').classList.remove('hidden');
-            document.getElementById('successMessage').textContent = result.message;
-            document.getElementById('backBtn').classList.add('hidden');
+            // Show success
+            showSuccess(data.message);
+
+            // Display code
+            document.getElementById('generatedCode').textContent = data.code;
+            document.getElementById('configJson').textContent = data.config_json;
+
+            // Show preview section
+            document.getElementById('codePreview').classList.remove('hidden');
+
+            // Enable download button
+            document.getElementById('downloadBtn').disabled = false;
+
+            // Scroll to preview
+            document.getElementById('codePreview').scrollIntoView({ behavior: 'smooth' });
         } else {
-            alert('❌ ' + result.message);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Server';
+            showError(data.message || '❌ Failed to generate server');
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Server';
+        showError(`❌ Error: ${error.message}`);
     }
 }
 
-// Download Server
-function downloadServer() {
+// Download ZIP
+async function downloadZip() {
+    if (!generatedFilename) {
+        showError('❌ No file to download');
+        return;
+    }
+
     window.location.href = `/api/download/${generatedFilename}`;
+    showSuccess('✅ Download started!');
 }
 
-// Reset Wizard
-function resetWizard() {
-    // Reset state
-    currentStep = 1;
-    serverConfig = {
-        name: '',
-        description: '',
-        server_type: '',
-        config: {
-            tools: [],
-            resources: [],
-            prompts: []
-        }
-    };
-    generatedFilename = '';
+// Reset all
+function resetAll() {
+    if (confirm('Are you sure you want to reset everything?')) {
+        tools = [];
+        resources = [];
+        prompts = [];
+        generatedFilename = null;
 
-    // Reset UI
-    document.getElementById('serverName').value = '';
-    document.getElementById('serverDescription').value = '';
-    document.getElementById('serverType').value = '';
+        // Clear inputs
+        document.getElementById('serverName').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('serverType').value = 'tool';
 
-    document.querySelectorAll('.server-type-card').forEach(card => {
-        card.classList.remove('border-purple-500', 'bg-purple-50');
-        card.classList.add('border-gray-300');
-    });
+        // Hide preview
+        document.getElementById('codePreview').classList.add('hidden');
+        document.getElementById('downloadBtn').disabled = true;
 
-    // Hide all steps except first
-    for (let i = 2; i <= 4; i++) {
-        document.getElementById(`step${i}`).classList.add('hidden');
+        // Update UI
+        renderComponents();
+        updateCounts();
+        updateServerType();
+        hideStatus();
+
+        showSuccess('✅ Reset complete!');
     }
-    document.getElementById('step1').classList.remove('hidden');
+}
 
-    // Reset step indicators
-    for (let i = 1; i <= 4; i++) {
-        document.getElementById(`step${i}-indicator`).classList.remove('active', 'completed');
-        document.getElementById(`step${i}-indicator`).classList.add('bg-gray-300');
+// Tab switching
+function showTab(tab) {
+    const codeTab = document.getElementById('codeTab');
+    const instructionsTab = document.getElementById('instructionsTab');
+    const codeContent = document.getElementById('codeContent');
+    const instructionsContent = document.getElementById('instructionsContent');
+
+    if (tab === 'code') {
+        codeTab.classList.add('tab-active');
+        codeTab.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+        instructionsTab.classList.remove('tab-active');
+        instructionsTab.classList.add('bg-gray-200', 'hover:bg-gray-300');
+
+        codeContent.classList.remove('hidden');
+        instructionsContent.classList.add('hidden');
+    } else {
+        instructionsTab.classList.add('tab-active');
+        instructionsTab.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+        codeTab.classList.remove('tab-active');
+        codeTab.classList.add('bg-gray-200', 'hover:bg-gray-300');
+
+        codeContent.classList.add('hidden');
+        instructionsContent.classList.remove('hidden');
     }
-    document.getElementById('step1-indicator').classList.add('active');
-    document.getElementById('step1-indicator').classList.remove('bg-gray-300');
+}
 
-    // Reset step 4 content
-    document.getElementById('generateContent').classList.remove('hidden');
-    document.getElementById('successContent').classList.add('hidden');
-    document.getElementById('backBtn').classList.remove('hidden');
-    document.getElementById('generateBtn').disabled = false;
-    document.getElementById('generateBtn').innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Server';
+// Status messages
+function showSuccess(message) {
+    showStatus(message, 'success');
+}
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+function showError(message) {
+    showStatus(message, 'error');
+}
+
+function showLoading(message) {
+    const statusDiv = document.getElementById('statusMessage');
+    statusDiv.className = 'bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg';
+    statusDiv.innerHTML = `
+        <div class="flex items-center">
+            <svg class="spinner w-5 h-5 mr-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="font-semibold text-blue-800">${message}</p>
+        </div>
+    `;
+    statusDiv.classList.remove('hidden');
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('statusMessage');
+
+    if (type === 'success') {
+        statusDiv.className = 'bg-green-50 border-l-4 border-green-500 p-4 rounded-lg';
+        statusDiv.innerHTML = `<p class="font-semibold text-green-800">${message}</p>`;
+    } else if (type === 'error') {
+        statusDiv.className = 'bg-red-50 border-l-4 border-red-500 p-4 rounded-lg';
+        statusDiv.innerHTML = `<p class="font-semibold text-red-800">${message}</p>`;
+    }
+
+    statusDiv.classList.remove('hidden');
+
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+        statusDiv.classList.add('hidden');
+    }, 5000);
+}
+
+function hideStatus() {
+    document.getElementById('statusMessage').classList.add('hidden');
 }
